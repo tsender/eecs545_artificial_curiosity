@@ -1,6 +1,6 @@
 import heapq
 from typing import Tuple, List, Generator
-from ArtificialCuriosityTypes import ArtificialCuriosityTypes as ac
+from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
 
 class Memory:
     """
@@ -16,11 +16,11 @@ class Memory:
     Methods
     -------
     __init__(maxLength: int = 30)
-        Initializes the memory unit with a default capacity of 30 ac.Experience
+        Initializes the memory unit with a default capacity of 30 act.Experience
     push(data: Experience)
-        Adds an ac.Experience to the memory unit. If the memory is full, it forgets the ac.Experience that had the gratest ac.Novelty
+        Adds an act.Experience to the memory unit. If the memory is full, it forgets the act.Experience that had the gratest act.Novelty
     memIter() -> Generator
-        Creates an iterator that can be used to iterate over ac.Experience instances
+        Creates an iterator that can be used to iterate over act.Experience instances
     """
 
     def __init__(self, maxLength: int = 30):
@@ -28,21 +28,21 @@ class Memory:
         Parameters
         __________
         maxLength : int
-            The maximum number of experiences(ac.Experience) that the memory unit can contain
+            The maximum number of experiences(act.Experience) that the memory unit can contain
         
         Returns
         _______
         Memory
         """
-        self.heap: List[ac.Experience] = []
+        self.heap: List[act.Experience] = []
         self.maxLength: int = maxLength
 
-    def push(self, data: ac.Experience):
+    def push(self, data: act.Experience):
         """
         Parameters
         __________
-        data : ac.Experience
-            Adds an experience (ac.Experience) to memory. Once full, experiences that are less novel (lower values of ac.Novelty) will be forgotten as new experiences are added
+        data : act.Experience
+            Adds an experience (act.Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
 
         Returns
         _______
@@ -63,6 +63,6 @@ class Memory:
         Returns
         _______
         Generator
-            An iterator that operates over all experiences (ac.experience) in memory
+            An iterator that operates over all experiences (act.experience) in memory
         """
         return iter(self.heap)

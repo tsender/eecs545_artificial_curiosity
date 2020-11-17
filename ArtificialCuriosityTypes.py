@@ -27,9 +27,3 @@ addType(Novelty=float)
 addType(FeatureVector=List[float])
 
 # A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory
-addType(
-    Experience = Tuple[
-        ArtificialCuriosityTypes.Novelty,
-        ArtificialCuriosityTypes.FeatureVector,
-        ArtificialCuriosityTypes.Image
-    ])

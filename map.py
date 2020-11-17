@@ -49,8 +49,6 @@ class Map:
 		if not grey_scale:
 			img = img.convert('L') # convert image to greyscale
 
-
-		#print(img.getpixel((0, 0)))
 		self.img = img
 
 
@@ -68,6 +66,36 @@ class Map:
 
 		"""
 
+		x_pixel, y_pixel = position
+
+		width, height = self.img.size # width and height of the image
+		print(width, height)
+
+
+		#crop = self.img.crop((0, 424, 200, 534)) ## this is bottom left crop with 
+		#crop.save('cropped.jpg')
+
+
+
+		#### We use top-right as the offset to find the other 3 squares the rovers "sits" on  #####
+
+		above = (max(0, x_pixel - 1), y_pixel)
+		right = (x_pixel, min(width, y_pixel+1))
+
+		if y_pixel == width or x_pixel == 0:
+
+			# rover is in the top row or the right most column of the map
+			# top right is the same as current pixel
+
+			top_right = (x_pixel, y_pixel)
+
+		else:
+
+			top_right = (x_pixel - 1, y_pixel + 1)
+
+
+
+		# rover sits on position, above, right, top_right
 
 
 
@@ -81,7 +109,11 @@ class Map:
 
 
 
-#x = Map("x.jpeg", 2, 5)
+x = Map("x.jpg", 2, 5)
+
+
+#num_rows < num_cols in this image
+x.get_fov((534, 0))
 
 
 

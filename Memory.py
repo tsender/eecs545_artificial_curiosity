@@ -2,6 +2,7 @@ import heapq
 from typing import Tuple, List, Generator
 from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
 from Experience import Experience
+import pprint
 
 class Memory:
     """
@@ -69,5 +70,20 @@ class Memory:
         return iter(self.heap)
 
     def __str__(self):
-        return "maxLength: {0}\ncurrentLength: {1}\nmemories: {2}".format(self.maxLength, len(self.heap), self.heap)
+        return str(vars(self))
 
+    def __repr__(self):
+        return pprint.pformat(vars(self))
+
+if __name__ == "__main__":
+    print = pprint.PrettyPrinter(indent=4).pprint
+    m = Memory(5)
+    for i in range(5):
+        m.push(Experience(i, None, None))
+
+    print(m)
+    m.push(Experience(6, None, None))
+    print(m)
+
+    for i in m.memIter():
+        print(i.novelty)

@@ -1,5 +1,6 @@
 from typing import Tuple, List, Generator
 from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
+import pprint
 
 class Experience:
     """
@@ -139,5 +140,18 @@ class Experience:
         _______
         string
         """
-        return "novelty: {0}\nfeatureVector {1}\ngrain: {2}".format(self.novelty, self.featureVector, self.grain)
+        return str(vars(self))
 
+    def __repr__(self):
+        return pprint.pformat(vars(self), indent=1, width=1)
+
+if __name__ == "__main__":
+    pp = pprint.PrettyPrinter(indent=4)
+
+    print(Experience(0, None, None) <  Experience(1, None, None))
+    print(Experience(0, None, None) <= Experience(1, None, None))
+    print(Experience(0, None, None) >  Experience(1, None, None))
+    print(Experience(0, None, None) >= Experience(1, None, None))
+    print(Experience(0, None, None) == Experience(1, None, None))
+    print(Experience(0, None, None) != Experience(1, None, None))
+    pp.pprint(Experience(0, None, None))

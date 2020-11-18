@@ -44,8 +44,6 @@ class Map:
 		img = Image.open(Path(filepath))
 		grey_scale = mh.is_grey_scale(img) # check if the image is greyscale
 
-		print(grey_scale)
-
 		if not grey_scale:
 			img = img.convert('L') # convert image to greyscale
 
@@ -57,7 +55,7 @@ class Map:
 		"""
 		Parameter:
 
-			position: Position of the rover on the map -- a tuple
+			position: Position of the rover on the map -- a tuple expected in (column, row)
 
 		Returns:
 
@@ -66,37 +64,37 @@ class Map:
 
 		"""
 
-		x_pixel, y_pixel = position
+		width, height = self.img.size
+		
+		rover_position = mh.find_sitting_pixels(position, width, height)
 
-		width, height = self.img.size # width and height of the image
-		print(width, height)
+		print(rover_position)
+		
 
+		######## Crop the images to get grains of radius fov ##################
 
-		#crop = self.img.crop((0, 424, 200, 534)) ## this is bottom left crop with 
-		#crop.save('cropped.jpg')
+		## Get the (left, upper, right, lower) coordinates for each square the rover sits on
 
+		all_coords = mh.find_coordinates(rover_position, self.fov, width, height)
 
+		
+		## Crop and return grains ##
 
-		#### We use top-right as the offset to find the other 3 squares the rovers "sits" on  #####
+		grains = []
+		for coord in all_coords:
+			if coord != None:
 
-		above = (max(0, x_pixel - 1), y_pixel)
-		right = (x_pixel, min(width, y_pixel+1))
-
-		if y_pixel == width or x_pixel == 0:
-
-			# rover is in the top row or the right most column of the map
-			# top right is the same as current pixel
-
-			top_right = (x_pixel, y_pixel)
-
-		else:
-
-			top_right = (x_pixel - 1, y_pixel + 1)
+				if coord[0] != coord[2] and coord[1] != coord[3]:
+					# For ex. (0, 534, 300, 534) --> the 534th row of the image b/w columns 0 and 300
+					# Crop doesn't work for row/column "vectors"
+					grains.append(self.img.crop(coord))
 
 
+		for i in grains:
+			i.show()
 
-		# rover sits on position, above, right, top_right
-
+		
+		return grains
 
 
 
@@ -109,11 +107,11 @@ class Map:
 
 
 
-x = Map("x.jpg", 2, 5)
+x = Map("x.jpg", 400, 5)
 
 
-#num_rows < num_cols in this image
-x.get_fov((534, 0))
+#num_rows < num_cols in test image
+x.get_fov((0, 534))
 
 
 

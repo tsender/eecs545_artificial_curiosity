@@ -67,8 +67,6 @@ class Map:
 		width, height = self.img.size
 		
 		rover_position = mh.find_sitting_pixels(position, width, height)
-
-		print(rover_position)
 		
 
 		######## Crop the images to get grains of radius fov ##################
@@ -98,8 +96,25 @@ class Map:
 
 
 
-	def clean_directions(self, coordinates: tuple):
-		pass
+	def clean_directions(self, coordinates: list):
+		"""
+		Parameters: A list of tuples that represent coordinates
+
+		Returns: A boolean array corresponding to each coordinate that indicates whether the model can move to that coordinate
+		"""
+
+		width, height = self.img.size
+		valid_directions = []
+
+		for pixel in coordinates:
+			if pixel[0] < 0 or pixel[0] > width or pixel[1] < 0 or pixel[1] > height:
+				# Coordinate is out of bounds #
+				valid_directions.append(False)
+			else:
+				valid_directions.append(True)
+
+
+		return valid_directions
 
 
 
@@ -110,10 +125,11 @@ class Map:
 x = Map("x.jpg", 400, 5)
 
 
-#num_rows < num_cols in test image
+# num_rows < num_cols in test image
+# width = 800, height = 534
 x.get_fov((0, 534))
 
-
+x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
 
 
 

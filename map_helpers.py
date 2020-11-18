@@ -2,6 +2,9 @@
 File that has helper functions for the Map class
 
 1. is_grey_scale(img) : Checks whether the given image is greyscale or color
+2. is_valid_position(img, fov, position): Checks whether the given position is valid or not
+3. find_sitting_pixels(position, width, height): Finds the pixel that the rover is "sitting" on
+4. find_coordinates(rover_position, fov, width, height): Finds the cropping coordinates that create grains
 
 """
 
@@ -25,6 +28,28 @@ def is_grey_scale(img):
 
 
 	return True
+
+
+
+def is_valid_position(img, fov, position):
+	"""
+	Parameters: The image, fov and position passed to get_fov in map.py
+
+	Returns: A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
+
+	"""
+
+	width, height = img.size
+
+	column, row = position
+
+	if column >= fov - 1 and column <= width - fov and row >= fov - 1 and row <= height - fov:
+
+		return True
+
+	else:
+
+		return False
 
 
 
@@ -79,7 +104,6 @@ def find_sitting_pixels(position, width, height):
 
 
 	return rover_position
-
 
 
 

@@ -64,35 +64,48 @@ class Map:
 
 		"""
 
-		width, height = self.img.size
+
+		# Making sure the position is valid, i.e. at least fov pixels away from the edges
+		is_valid = mh.is_valid_position(self.img, self.fov, position)
+
+		if is_valid:
+
+			width, height = self.img.size
 		
-		rover_position = mh.find_sitting_pixels(position, width, height)
-		
+			rover_position = mh.find_sitting_pixels(position, width, height)
+			
 
-		######## Crop the images to get grains of radius fov ##################
+			############ Crop the images to get grains of radius fov ##################
 
-		## Get the (left, upper, right, lower) coordinates for each square the rover sits on
+			## Get the (left, upper, right, lower) coordinates for each square the rover sits on
 
-		all_coords = mh.find_coordinates(rover_position, self.fov, width, height)
+			all_coords = mh.find_coordinates(rover_position, self.fov, width, height)
 
-		
-		## Crop and return grains ##
+			
+			## Crop and return grains ##
 
-		grains = []
-		for coord in all_coords:
-			if coord != None:
+			grains = []
+			for coord in all_coords:
+				if coord != None:
 
-				if coord[0] != coord[2] and coord[1] != coord[3]:
-					# For ex. (0, 534, 300, 534) --> the 534th row of the image b/w columns 0 and 300
-					# Crop doesn't work for row/column "vectors"
-					grains.append(self.img.crop(coord))
+					if coord[0] != coord[2] and coord[1] != coord[3]:
+						# For ex. (0, 534, 300, 534) --> the 534th row of the image b/w columns 0 and 300
+						# Crop doesn't work for row/column "vectors"
+						# It should never go in here based on how clean_directions is implemented, but just in case
+						grains.append(self.img.crop(coord))
 
 
-		for i in grains:
-			i.show()
+			for i in grains:
+				i.show()
 
-		
-		return grains
+			
+			return grains
+
+
+		else:
+
+			raise ValueError("Invalid position. Should be atleast [fov] pixels away from image edge.")
+
 
 
 
@@ -107,11 +120,13 @@ class Map:
 		valid_directions = []
 
 		for pixel in coordinates:
-			if pixel[0] < 0 or pixel[0] > width or pixel[1] < 0 or pixel[1] > height:
-				# Coordinate is out of bounds #
-				valid_directions.append(False)
-			else:
+			is_valid = mh.is_valid_position(self.img, self.fov, pixel)
+
+			if is_valid:
 				valid_directions.append(True)
+			else:
+				# Coordinate is closer than [fov] pixels to the edge #
+				valid_directions.append(False)
 
 
 		return valid_directions
@@ -122,12 +137,12 @@ class Map:
 
 
 
-x = Map("x.jpg", 400, 5)
+x = Map("x.jpg", 150, 5)
 
 
 # num_rows < num_cols in test image
 # width = 800, height = 534
-x.get_fov((0, 534))
+x.get_fov((600, 375))
 
 x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
 

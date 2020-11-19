@@ -91,7 +91,7 @@ class Map:
 					if coord[0] != coord[2] and coord[1] != coord[3]:
 						# For ex. (0, 534, 300, 534) --> the 534th row of the image b/w columns 0 and 300
 						# Crop doesn't work for row/column "vectors"
-						# It should never go in here based on how clean_directions is implemented, but just in case
+						# It should never not go in here based on how clean_directions is implemented, but just in case
 						grains.append(self.img.crop(coord))
 
 
@@ -137,12 +137,12 @@ class Map:
 
 
 
-x = Map("x.jpg", 150, 5)
+x = Map("x.jpg", 4, 5)
 
 
 # num_rows < num_cols in test image
 # width = 800, height = 534
-x.get_fov((600, 375))
+x.get_fov((790, 530))
 
 x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
 

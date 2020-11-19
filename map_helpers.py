@@ -43,7 +43,7 @@ def is_valid_position(img, fov, position):
 
 	column, row = position
 
-	if column >= fov - 1 and column <= width - fov and row >= fov - 1 and row <= height - fov:
+	if column >= fov - 1 and column <= width - fov and row > fov - 1 and row <= height - fov:
 
 		return True
 
@@ -120,25 +120,25 @@ def find_coordinates(rover_position, fov, width, height):
 
 	if rover_position["position"] != None:
 		position = rover_position["position"]
-		crop_position_coords = (max(0, position[0] - fov + 1), position[1], position[0], min(height, position[1] + fov - 1))
+		crop_position_coords = (max(0, position[0] - fov + 1), position[1], position[0] + 1, min(height, position[1] + fov))
 	else:
 		crop_position_coords = None
 
 	if rover_position["above"] != None:
 		above = rover_position["above"]
-		crop_above_coords = (max(0, above[0] - fov + 1), max(0, above[1] - fov + 1), above[0], above[1])
+		crop_above_coords = (max(0, above[0] - fov + 1), max(0, above[1] - fov + 1), above[0] + 1, above[1] + 1)
 	else:
 		crop_above_coords = None
 
 	if rover_position["right"] != None:
 		right = rover_position["right"]
-		crop_right_coords = (right[0], right[1], min(width, right[0] + fov - 1), min(height, right[1] + fov - 1))
+		crop_right_coords = (right[0], right[1], min(width, right[0] + fov), min(height, right[1] + fov))
 	else:
 		crop_right_coords = None
 
 	if rover_position["top_right"] != None:
 		top_right = rover_position["top_right"]
-		crop_top_right_coords = (top_right[0], max(0, top_right[1] - fov + 1), min(width, top_right[0] + fov - 1), top_right[1])
+		crop_top_right_coords = (top_right[0], max(0, top_right[1] - fov + 1), min(width, top_right[0] + fov), top_right[1] + 1)
 	else:
 		crop_top_right_coords = None
 

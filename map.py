@@ -96,6 +96,7 @@ class Map:
 
 
 			for i in grains:
+				print(i.size)
 				i.show()
 
 			
@@ -142,7 +143,7 @@ x = Map("x.jpg", 4, 5)
 
 # num_rows < num_cols in test image
 # width = 800, height = 534
-x.get_fov((790, 530))
+x.get_fov((795, 530))
 
 x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
 

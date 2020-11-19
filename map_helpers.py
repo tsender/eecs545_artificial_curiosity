@@ -43,7 +43,7 @@ def is_valid_position(img, fov, position):
 
 	column, row = position
 
-	if column >= fov - 1 and column <= width - fov and row > fov - 1 and row <= height - fov:
+	if column >= fov - 1 and column < width - fov and row > fov - 1 and row <= height - fov:
 
 		return True
 

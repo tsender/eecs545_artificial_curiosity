@@ -28,7 +28,7 @@ jobs:
       - name: Set Up Git Credentials
         run: |
           git config --local user.email "Doc Oc"
-          git config --local user.name "<>"
+          git config --local user.name "doc@oc.com"
       - name: Git commit
         run: |
           git add docs/*

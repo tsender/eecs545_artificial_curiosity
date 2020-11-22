@@ -15,7 +15,7 @@ jobs:
         run: |
           pip3 install wheel
           pip3 install pydoc-markdown
-          which -a python3
+          ls /usr/local/bin -a
       - name: Initialize Pydoc-Markdown
         run: /usr/local/bin/pydoc-markdown --bootstrap hugo
       - name: Generate Documentation

@@ -1,0 +1,34 @@
+name: generate-docs
+on:
+  push:
+    branches:
+      - main
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: pip3 install pydoc-markdown
+      - name: Initialize Pydoc-Markdown
+        run: pydoc-markdown --bootstrap hugo
+      - name: Generate Documentation
+        run: pydoc-markdown
+      - name: Move Documentation
+        run: cp -r ./build/docs/content/docs ./docs
+      - name: Remove Excess Files
+        run: |
+          rm -R build/
+          rm pydoc-markdown.yml
+      - name: Set Up Git Credentials
+        run: |
+          git config --local user.email "Doc Oc"
+          git config --local user.name "<>"
+      - name: Git commit
+        run: |
+          git add docs/*
+          git commit . -m "Generated Documentation"
+          git push origin master
+        
+     

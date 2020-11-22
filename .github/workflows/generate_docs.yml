@@ -12,7 +12,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Install Dependencies
-        run: pip3 install pydoc-markdown
+        run: |
+          pip3 install pydoc-markdown
+          pip3 install wheel
       - name: Initialize Pydoc-Markdown
         run: pydoc-markdown --bootstrap hugo
       - name: Generate Documentation

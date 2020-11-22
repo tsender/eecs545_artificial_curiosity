@@ -13,13 +13,13 @@ jobs:
         uses: actions/checkout@v2
       - name: Install Dependencies
         run: |
-          pip3 install wheel
-          pip3 install pydoc-markdown
+          pipx install wheel
+          pipx install pydoc-markdown
           ls /usr/local/bin -a
       - name: Initialize Pydoc-Markdown
-        run: /usr/local/bin/pydoc-markdown --bootstrap hugo
+        run: pipx run pydoc-markdown --bootstrap hugo
       - name: Generate Documentation
-        run: /usr/local/bin/pydoc-markdown
+        run: pipx run pydoc-markdown
       - name: Move Documentation
         run: cp -r ./build/docs/content/docs ./docs
       - name: Remove Excess Files

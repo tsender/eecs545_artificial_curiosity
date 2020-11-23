@@ -140,3 +140,7 @@ cython_debug/
 # vs code related things
 .vscode
 .local
+.keras
+.Jupyter
+.config
+.ipython

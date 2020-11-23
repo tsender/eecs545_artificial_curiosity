@@ -1,7 +1,7 @@
 import tensorflow as tf
-from Memory import Manory
+from Memory import Memory
 from Experience import Experience
-from map import Map
+from Map import Map
 import novelty
 from tensorflow.keras.models import Model
 from tensorflow.keras import layers

@@ -6,7 +6,7 @@ import pprint
 
 class Memory:
     """
-    Thsi class abstracts away the specific implementation of an autonomous agent's memory unit
+    This class abstracts away the specific implementation of an autonomous agent's memory unit
 
     
 

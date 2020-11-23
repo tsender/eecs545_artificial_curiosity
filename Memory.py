@@ -25,24 +25,24 @@ class Memory:
 
     def __init__(self, maxLength: int = 30):
         """
-        Parameters
+        ### Parameters
         
-        maxLength : int
-            The maximum number of experiences(Experience) that the memory unit can contain
+        > maxLength : int  
+            > The maximum number of experiences(Experience) that the memory unit can contain
         
-        Returns
+        ### Returns
 
-        Memory
+        > Memory
         """
         self.heap: List[Experience] = []
         self.maxLength: int = maxLength
 
     def push(self, data: Experience):
         """
-        Parameters
+        ### Parameters
 
-        data : Experience
-            Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
+        > data : Experience  
+        >    > Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
 
         Returns
 
@@ -56,14 +56,14 @@ class Memory:
 
     def memIter(self) -> Generator:
         """
-        Parameters
+        ### Parameters
 
-        None
+        > None
 
-        Returns
+        ### Returns
 
-        Generator
-            An iterator that operates over all experiences (Experience) in memory
+        > Generator
+        >    > An iterator that operates over all experiences (Experience) in memory
         """
         return iter(self.heap)
 

@@ -144,3 +144,4 @@ cython_debug/
 .Jupyter
 .config
 .ipython
+.ipynb

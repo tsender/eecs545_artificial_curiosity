@@ -95,8 +95,8 @@ class Map:
 						grains.append(self.img.crop(coord))
 
 
-			for i in grains:
-				i.show()
+			#for i in grains:
+			#	i.show()
 
 			
 			return grains

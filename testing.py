@@ -1,7 +1,7 @@
 from Experience import Experience
 from Memory import Memory
 from ArtificialCuriosityTypes import ArtificialCuriosityTypes as ac
-from Map import Map
+from map import Map
 from PIL import Image
 import unittest
 

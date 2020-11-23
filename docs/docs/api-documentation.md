@@ -306,22 +306,6 @@ string
 <a name="testing"></a>
 # testing
 
-<a name="testing.MapTest"></a>
-## MapTest Objects
-
-```python
-class MapTest(unittest.TestCase)
-```
-
-<a name="testing.MapTest.test_directions"></a>
-#### test\_directions
-
-```python
- | test_directions()
-```
-
-Aravind, please finish this test case
-
 <a name="ArtificialCuriosityTypes"></a>
 # ArtificialCuriosityTypes
 

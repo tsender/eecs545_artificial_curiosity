@@ -97,13 +97,13 @@ self.novelty : act.Novelty
     A float that represents the movelty of the Experience
 self.featureVector : List[float]
     A vector that holds the different features that represent this memory
-self.grain : act.Image
+self.grain : act.Grain
     An image that will show us what the machine remembers
 
 
 Methods
 -------
-__init__(nov: act.Novelty, fVect: List[float], grn: act.Image)
+__init__(nov: act.Novelty, fVect: List[float], grn: act.Grain)
     Initializes the Experience with the given novelty, feature vector, and image
 __lt__(other)
     Compares against the novelty. Works for scalars and other instances of Experience
@@ -124,7 +124,7 @@ __str__()
 #### \_\_init\_\_
 
 ```python
- | __init__(nov: act.Novelty, fVect: List[float], grn: act.Image)
+ | __init__(nov: act.Novelty, fVect: List[float], grn: act.Grain)
 ```
 
 Parameters

@@ -1,6 +1,7 @@
 from typing import Tuple, List, Generator
 from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
 import pprint
+from PIL import Image
 
 class Experience:
     """
@@ -14,13 +15,13 @@ class Experience:
         A float that represents the movelty of the Experience
     self.featureVector : List[float]
         A vector that holds the different features that represent this memory
-    self.grain : act.Image
+    self.grain : act.Grain
         An image that will show us what the machine remembers
 
 
     Methods
     -------
-    __init__(nov: act.Novelty, fVect: List[float], grn: act.Image)
+    __init__(nov: act.Novelty, fVect: List[float], grn: act.Grain)
         Initializes the Experience with the given novelty, feature vector, and image
     __lt__(other)
         Compares against the novelty. Works for scalars and other instances of Experience
@@ -38,7 +39,7 @@ class Experience:
         Returns a string representation of Experience
     """
 
-    def __init__(self, nov: act.Novelty, fVect: List[float], grn: act.Image):
+    def __init__(self, nov: act.Novelty, fVect: List[float], grn: act.Grain):
         """
         Parameters
         __________
@@ -46,7 +47,7 @@ class Experience:
             The measure of novelty, expressed as a float
         fVect : List[float]
             A feature vector expressing the grain (image)
-        grn: act.Image
+        grn: act.Grain
             A grain (image) to be remembered. This exists so we can reference it later
         
         Returns

@@ -3,6 +3,7 @@ from typing import Tuple, List, Generator
 from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
 from Experience import Experience
 import pprint
+from PIL import Image
 
 class Memory:
     """

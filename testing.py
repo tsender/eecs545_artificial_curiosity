@@ -1,6 +1,6 @@
 from Experience import Experience
 from Memory import Memory
-from ArtificialCuriosityTypes import ArtificialCuriosityTypes as ac
+from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
 from Map import Map
 from PIL import Image
 import unittest
@@ -49,7 +49,7 @@ class MapTest(unittest.TestCase):
         # self.assertEqual(m.sqrtGrains, 4 ** (1/2))
 
         self.assertEqual(m.fov, 30)
-        self.assertIsInstance(m.img, Image.Image)
+        self.assertIsInstance(m.img, act.Grain)
 
     def test_map_exceptions(self):
         m = Map("x.jpg", 30, 4)

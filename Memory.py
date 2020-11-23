@@ -8,15 +8,13 @@ class Memory:
     """
     This class abstracts away the specific implementation of an autonomous agent's memory unit
 
-    
-
     Attributes
-    ----------
+
     None
 
 
     Methods
-    -------
+
     __init__(maxLength: int = 30)
         Initializes the memory unit with a default capacity of 30 Experience
     push(data: Experience)
@@ -28,12 +26,12 @@ class Memory:
     def __init__(self, maxLength: int = 30):
         """
         Parameters
-        __________
+        
         maxLength : int
             The maximum number of experiences(Experience) that the memory unit can contain
         
         Returns
-        _______
+
         Memory
         """
         self.heap: List[Experience] = []
@@ -42,12 +40,12 @@ class Memory:
     def push(self, data: Experience):
         """
         Parameters
-        __________
+
         data : Experience
             Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
 
         Returns
-        _______
+
         None
         """
         if(len(self.heap) < self.maxLength):
@@ -59,11 +57,11 @@ class Memory:
     def memIter(self) -> Generator:
         """
         Parameters
-        __________
+
         None
 
         Returns
-        _______
+
         Generator
             An iterator that operates over all experiences (Experience) in memory
         """

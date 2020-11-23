@@ -4,16 +4,17 @@ import map_helpers as mh
 
 class Map:
 	"""
-	Map class that creates instances of the terrain map that
-	the model will work on
+	Map class that creates instances of the terrain map that the model will work on
 
-	__init__ : 
+	Methods
+
+	`__init__(filepath: str, fov: int, sqrtGrains: int` 
 		initialize an instance of the given map and store fov and sqrtGrains
 
-	get_fov(position): 
+	`get_fov(position: tuple)` 
 		returns a list of grains (sub-images) with radius fov given the position of the model on the map
 
-	clean_directions(coordinates): 
+	`clean_directions(coordinates: list)` 
 		return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
 
 	"""
@@ -22,14 +23,14 @@ class Map:
 		"""
 		Parameters:
 
-			filepath: the input terrain map -- can be a jpg or png
-			fov: radius of the field-of-view
-			sqrtGrains: The square root of the number of grains (sub-squares) in the fov
+			filepath: the stringpath containing the input terrain map -- can be a jpg or png
+			fov: an int radius of the field-of-view
+			sqrtGrains: The square root of the number of grains (sub-squares) in the fov -- an int
 
 
 		Returns:
 
-			Initializes an object with:
+			A Map object with:
 
 				The image from filepath (in greyscale),
 				fov,
@@ -54,7 +55,6 @@ class Map:
 	def get_fov(self, position: tuple):
 		"""
 		Parameter:
-
 			position: Position of the rover on the map -- a tuple expected in (column, row)
 
 		Returns:
@@ -94,9 +94,8 @@ class Map:
 						# It should never not go in here based on how clean_directions is implemented, but just in case
 						grains.append(self.img.crop(coord))
 
-
+            
 			# for i in grains:
-			# 	print(i.size)
 			# 	i.show()
 
 			
@@ -105,16 +104,18 @@ class Map:
 
 		else:
 
-			raise ValueError("Invalid position. Should be atleast [fov] pixels away from image edge.")
+			raise ValueError("Invalid position. Should be atleast %d pixels away from image edge." % self.fov)
 
 
 
 
 	def clean_directions(self, coordinates: list):
 		"""
-		Parameters: A list of tuples that represent coordinates
+		Parameter: 
+			coordinates: A list of tuples that represent coordinates
 
-		Returns: A boolean array corresponding to each coordinate that indicates whether the model can move to that coordinate
+		Returns: 
+			A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
 		"""
 
 		width, height = self.img.size
@@ -131,22 +132,4 @@ class Map:
 
 
 		return valid_directions
-
-
-
-
-
-if __name__ == "__main__":
-
-	x = Map("x.jpg", 4, 5)
-
-
-	# num_rows < num_cols in test image
-	# width = 800, height = 534
-	x.get_fov((795, 530))
-
-	x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
-
-
-
-
+  

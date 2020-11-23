@@ -95,9 +95,9 @@ class Map:
 						grains.append(self.img.crop(coord))
 
 
-			for i in grains:
-				print(i.size)
-				i.show()
+			# for i in grains:
+			# 	print(i.size)
+			# 	i.show()
 
 			
 			return grains
@@ -136,16 +136,16 @@ class Map:
 
 
 
+if __name__ == "__main__":
+
+	x = Map("x.jpg", 4, 5)
 
 
-x = Map("x.jpg", 4, 5)
+	# num_rows < num_cols in test image
+	# width = 800, height = 534
+	x.get_fov((795, 530))
 
-
-# num_rows < num_cols in test image
-# width = 800, height = 534
-x.get_fov((795, 530))
-
-x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
+	x.clean_directions([(0, 0), (800, 534), (534, 800), (800, 535), (801, 534), (-1, 534), (200, -1), (200, 300)])
 
 
 

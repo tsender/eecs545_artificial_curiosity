@@ -94,9 +94,9 @@ class Map:
 						# It should never not go in here based on how clean_directions is implemented, but just in case
 						grains.append(self.img.crop(coord))
 
-
-			#for i in grains:
-			#	i.show()
+            
+			# for i in grains:
+			# 	i.show()
 
 			
 			return grains
@@ -132,5 +132,4 @@ class Map:
 
 
 		return valid_directions
-
-
+  

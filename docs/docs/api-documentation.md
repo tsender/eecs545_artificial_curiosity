@@ -15,15 +15,13 @@ class Memory()
 
 This class abstracts away the specific implementation of an autonomous agent's memory unit
 
-
-
 Attributes
-----------
+
 None
 
 
 Methods
--------
+
 __init__(maxLength: int = 30)
     Initializes the memory unit with a default capacity of 30 Experience
 push(data: Experience)
@@ -39,12 +37,12 @@ memIter() -> Generator
 ```
 
 Parameters
-__________
+
 maxLength : int
     The maximum number of experiences(Experience) that the memory unit can contain
 
 Returns
-_______
+
 Memory
 
 <a name="Memory.Memory.push"></a>
@@ -55,12 +53,12 @@ Memory
 ```
 
 Parameters
-__________
+
 data : Experience
     Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
 
 Returns
-_______
+
 None
 
 <a name="Memory.Memory.memIter"></a>
@@ -71,11 +69,11 @@ None
 ```
 
 Parameters
-__________
+
 None
 
 Returns
-_______
+
 Generator
     An iterator that operates over all experiences (Experience) in memory
 

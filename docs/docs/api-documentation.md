@@ -94,11 +94,12 @@ File that has helper functions for the Map class
 is_grey_scale(img)
 ```
 
-**Arguments**:
+Parameter:
+img: the PIL image object
 
-- `img` - the PIL image object
-  
-- `Returns` - A boolean indicating whether img is greyscale or not
+**Returns**:
+
+  A boolean indicating whether img is greyscale or not
 
 <a name="map_helpers.is_valid_position"></a>
 #### is\_valid\_position
@@ -107,9 +108,14 @@ is_grey_scale(img)
 is_valid_position(img, fov, position)
 ```
 
-Parameters: The image, fov and position passed to get_fov in map.py
+**Arguments**:
 
-Returns: A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
+  The image, fov and position passed to get_fov in map.py
+  
+
+**Returns**:
+
+  A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
 
 <a name="map_helpers.find_sitting_pixels"></a>
 #### find\_sitting\_pixels
@@ -118,10 +124,16 @@ Returns: A boolean indicating whether it is a valid position or not, i.e. atleas
 find_sitting_pixels(position, width, height)
 ```
 
-Parameters: the position of the rover and width and height of the image
+**Arguments**:
 
-Returns: A dictionary that represents the 4 pixels that the rover is "sitting" on
-of the form {"position":(x, y), "above": (e, f), "right": (g, h), "top_right": (a, s)}
+- `position` - the position of the rover
+- `width` - width (number of columns) of the image
+- `height` - height (number of rows) of the image
+  
+
+**Returns**:
+
+  A dictionary that represents the 4 pixels that the rover is "sitting" on
 
 <a name="map_helpers.find_coordinates"></a>
 #### find\_coordinates
@@ -130,10 +142,17 @@ of the form {"position":(x, y), "above": (e, f), "right": (g, h), "top_right": (
 find_coordinates(rover_position, fov, width, height)
 ```
 
-Parameters: A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels,
-The fov, width, height of image
+**Arguments**:
 
-Returns: A list of the cropping coordinates for each of the (max) four grains
+- `rover_position` - A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels
+- `fov` - the fov
+- `width` - the width of the image
+- `height` - the height of the image
+  
+
+**Returns**:
+
+  A list of the cropping coordinates for each of the (max) four grains
 
 <a name="Experience"></a>
 # Experience
@@ -336,16 +355,17 @@ None
 class Map()
 ```
 
-Map class that creates instances of the terrain map that
-the model will work on
+Map class that creates instances of the terrain map that the model will work on
 
-__init__ : 
+Methods
+
+`__init__(filepath: str, fov: int, sqrtGrains: int` 
 	initialize an instance of the given map and store fov and sqrtGrains
 
-get_fov(position): 
+`get_fov(position: tuple)` 
 	returns a list of grains (sub-images) with radius fov given the position of the model on the map
 
-clean_directions(coordinates): 
+`clean_directions(coordinates: list)` 
 	return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
 
 <a name="map.Map.__init__"></a>
@@ -358,16 +378,16 @@ clean_directions(coordinates):
 **Arguments**:
 
   
-- `filepath` - the input terrain map -- can be a jpg or png
-- `fov` - radius of the field-of-view
-- `sqrtGrains` - The square root of the number of grains (sub-squares) in the fov
+- `filepath` - the stringpath containing the input terrain map -- can be a jpg or png
+- `fov` - an int radius of the field-of-view
+- `sqrtGrains` - The square root of the number of grains (sub-squares) in the fov -- an int
   
   
 
 **Returns**:
 
   
-  Initializes an object with:
+  A Map object with:
   
   The image from filepath (in greyscale),
   fov,
@@ -381,7 +401,6 @@ clean_directions(coordinates):
 ```
 
 Parameter:
-
 position: Position of the rover on the map -- a tuple expected in (column, row)
 
 **Returns**:
@@ -397,7 +416,10 @@ position: Position of the rover on the map -- a tuple expected in (column, row)
  | clean_directions(coordinates: list)
 ```
 
-Parameters: A list of tuples that represent coordinates
+Parameter:
+coordinates: A list of tuples that represent coordinates
 
-Returns: A boolean array corresponding to each coordinate that indicates whether the model can move to that coordinate
+**Returns**:
+
+  A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
 

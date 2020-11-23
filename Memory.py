@@ -15,11 +15,11 @@ class Memory:
 
     Methods
 
-    __init__(maxLength: int = 30)
+    `__init__(maxLength: int = 30)`  
         Initializes the memory unit with a default capacity of 30 Experience
-    push(data: Experience)
+    `push(data: Experience)`  
         Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the gratest act.Novelty
-    memIter() -> Generator
+    `memIter() -> Generator`  
         Creates an iterator that can be used to iterate over Experience instances
     """
 
@@ -28,7 +28,7 @@ class Memory:
         ### Parameters
         
         > maxLength : int  
-            > The maximum number of experiences(Experience) that the memory unit can contain
+        >    > The maximum number of experiences(Experience) that the memory unit can contain
         
         ### Returns
 

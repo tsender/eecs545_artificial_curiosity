@@ -36,14 +36,14 @@ memIter() -> Generator
  | __init__(maxLength: int = 30)
 ```
 
-Parameters
+### Parameters
 
-maxLength : int
-    The maximum number of experiences(Experience) that the memory unit can contain
+> maxLength : int  
+    > The maximum number of experiences(Experience) that the memory unit can contain
 
-Returns
+### Returns
 
-Memory
+> Memory
 
 <a name="Memory.Memory.push"></a>
 #### push
@@ -52,10 +52,10 @@ Memory
  | push(data: Experience)
 ```
 
-Parameters
+### Parameters
 
-data : Experience
-    Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
+> data : Experience  
+>    > Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
 
 Returns
 
@@ -68,14 +68,14 @@ None
  | memIter() -> Generator
 ```
 
-Parameters
+### Parameters
 
-None
+> None
 
-Returns
+### Returns
 
-Generator
-    An iterator that operates over all experiences (Experience) in memory
+> Generator
+>    > An iterator that operates over all experiences (Experience) in memory
 
 <a name="Experience"></a>
 # Experience

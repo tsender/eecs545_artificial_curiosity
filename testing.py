@@ -74,6 +74,8 @@ class MapTest(unittest.TestCase):
         m.get_fov((width/2, height/2))
         m.get_fov((30, 30))
 
+    def test_directions(self):
+        # Aravind, please finish this test case
         
 
 

@@ -20,20 +20,20 @@ class Memory:
         Initializes the memory unit with a default capacity of 30 Experience
     `push(data: Experience)`  
         Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the gratest act.Novelty
-    `memIter() -> Generator`  
-        Creates an iterator that can be used to iterate over Experience instances
+    `memList() -> List[Experience]`  
+        Returns a list of Experience instances
     """
 
     def __init__(self, maxLength: int = 30):
         """
-        ### Parameters
+        Parameters
+        ---------
+        maxLength : int  
+            The maximum number of experiences(Experience) that the memory unit can contain
         
-        > maxLength : int  
-        >    > The maximum number of experiences(Experience) that the memory unit can contain
-        
-        ### Returns
-
-        > Memory
+        Returns
+        -------
+        Memory
         """
         self.heap: List[Experience] = []
         self.maxLength: int = maxLength
@@ -55,7 +55,7 @@ class Memory:
         elif(data > self.heap[0]):
             heapq.heappushpop(self.heap, data)
 
-    def memIter(self) -> Generator:
+    def memList(self) -> List[Experience]:
         """
         ### Parameters
 
@@ -63,10 +63,10 @@ class Memory:
 
         ### Returns
 
-        > Generator
-        >    > An iterator that operates over all experiences (Experience) in memory
+        > List[Experience]
+        >    > A list of Experience objects
         """
-        return iter(self.heap)
+        return self.heap
 
     def __str__(self):
         return str(vars(self))
@@ -84,5 +84,5 @@ if __name__ == "__main__":
     m.push(Experience(6, None, None))
     print(m)
 
-    for i in m.memIter():
+    for i in m.memList():
         print(i.novelty)

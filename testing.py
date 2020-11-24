@@ -38,7 +38,7 @@ class MemoryTest(unittest.TestCase):
         for i in range(6):
             m.push(Experience(i, None, None))
 
-        for i in m.memIter():
+        for i in m.memList():
             self.assertNotEqual(i.novelty, 0)
 
 class MapTest(unittest.TestCase):

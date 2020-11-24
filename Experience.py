@@ -1,5 +1,5 @@
 from typing import Tuple, List, Generator
-from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
+from artificial_curiosity_types import ArtificialCuriosityTypes as act
 import pprint
 from PIL import Image
 

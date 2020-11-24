@@ -1,6 +1,7 @@
 from typing import Tuple, List, Generator
 from types import SimpleNamespace
 from PIL import Image
+import tensorflow as tf
 
 # New types to simplify typing for this project
 ArtificialCuriosityTypes = SimpleNamespace()
@@ -22,7 +23,7 @@ def addType(**args):
 addType(Novelty=float)
 
 # A type to represent a feature vector
-addType(FeatureVector=List[float])
+addType(FeatureVector=tf.Tensor)
 
 # A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory
 

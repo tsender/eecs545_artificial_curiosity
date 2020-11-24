@@ -1,7 +1,7 @@
 import heapq
 from typing import Tuple, List, Generator
-from ArtificialCuriosityTypes import ArtificialCuriosityTypes as act
-from Experience import Experience
+from artificial_curiosity_types import ArtificialCuriosityTypes as act
+from experience import Experience
 import pprint
 from PIL import Image
 
@@ -35,7 +35,7 @@ class Memory:
         -------
         Memory
         """
-        self.heap: List[Experience] = []
+        self._heap: List[Experience] = []
         self.maxLength: int = maxLength
 
     def push(self, data: Experience):
@@ -49,11 +49,11 @@ class Memory:
 
         None
         """
-        if(len(self.heap) < self.maxLength):
-            heapq.heappush(self.heap, data)
+        if(len(self._heap) < self.maxLength):
+            heapq.heappush(self._heap, data)
         # Do nothing if less than the smallest element because it would not be interesting enough to remember
-        elif(data > self.heap[0]):
-            heapq.heappushpop(self.heap, data)
+        elif(data > self._heap[0]):
+            heapq.heappushpop(self._heap, data)
 
     def memList(self) -> List[Experience]:
         """
@@ -66,7 +66,7 @@ class Memory:
         > List[Experience]
         >    > A list of Experience objects
         """
-        return self.heap
+        return self._heap
 
     def __str__(self):
         return str(vars(self))

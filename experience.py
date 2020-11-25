@@ -1,27 +1,25 @@
 from typing import Tuple, List, Generator
-from artificial_curiosity_types import ArtificialCuriosityTypes as act
 import pprint
-from PIL import Image
+import PIL
+import numpy as np
 
 class Experience:
     """
     A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory and the Brain
 
-    
-
     Attributes
     ----------
-    self.novelty : act.Novelty
+    self.novelty : float
         A float that represents the movelty of the Experience
-    self.featureVector : List[float]
-        A vector that holds the different features that represent this memory
-    self.grain : act.Grain
+    self.featureVector : np.float32
+        A numpy.float32 1D array that holds the different features that represent this memory
+    self.grain : PIL.Image.Image
         An image that will show us what the machine remembers
 
 
     Methods
     -------
-    __init__(nov: act.Novelty, fVect: List[float], grn: act.Grain)
+    __init__(nov: float, fVect: np.float32, grn: PIL.Image.Image)
         Initializes the Experience with the given novelty, feature vector, and image
     __lt__(other)
         Compares against the novelty. Works for scalars and other instances of Experience
@@ -39,15 +37,15 @@ class Experience:
         Returns a string representation of Experience
     """
 
-    def __init__(self, nov: act.Novelty, fVect: List[float], grn: act.Grain):
+    def __init__(self, nov: float, fVect: np.float32, grn: PIL.Image.Image):
         """
         Parameters
         __________
-        nov : act.Novelty
+        nov : float
             The measure of novelty, expressed as a float
-        fVect : List[float]
-            A feature vector expressing the grain (image)
-        grn: act.Grain
+        fVect : np.float32
+            A numpy.float32 1D array that holds the different features that represent this grain
+        grn: PIL.Image.Image
             A grain (image) to be remembered. This exists so we can reference it later
         
         Returns

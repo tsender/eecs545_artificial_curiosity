@@ -16,15 +16,15 @@ class Memory:
 
     Methods
 
-    `__init__(maxLength: int = 30)`  
-        Initializes the memory unit with a default capacity of 30 Experience
+    `__init__(maxLength: int = 32)`  
+        Initializes the memory unit with a default capacity of 32 Experiences
     `push(data: Experience)`  
-        Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the gratest act.Novelty
+        Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the greatest act.Novelty
     `memList() -> List[Experience]`  
         Returns a list of Experience instances
     """
 
-    def __init__(self, maxLength: int = 30):
+    def __init__(self, maxLength: int = 32):
         """
         Parameters
         ---------

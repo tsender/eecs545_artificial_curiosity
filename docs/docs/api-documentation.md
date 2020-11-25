@@ -3,10 +3,176 @@ menu: main
 title: API Documentation
 ---
 
-<a name="Memory"></a>
-# Memory
+<a name="experience"></a>
+# experience
 
-<a name="Memory.Memory"></a>
+<a name="experience.Experience"></a>
+## Experience Objects
+
+```python
+class Experience()
+```
+
+A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory and the Brain
+
+Attributes
+----------
+self.novelty : float
+    A float that represents the movelty of the Experience
+self.featureVector : np.float32
+    A numpy.float32 1D array that holds the different features that represent this memory
+self.grain : PIL.Image.Image
+    An image that will show us what the machine remembers
+
+
+Methods
+-------
+__init__(nov: float, fVect: np.float32, grn: PIL.Image.Image)
+    Initializes the Experience with the given novelty, feature vector, and image
+__lt__(other)
+    Compares against the novelty. Works for scalars and other instances of Experience
+__le__(other)
+    Compares against the novelty. Works for scalars and other instances of Experience
+__gt__(other)
+    Compares against the novelty. Works for scalars and other instances of Experience
+__ge__(other)
+    Compares against the novelty. Works for scalars and other instances of Experience
+__eq__(other)
+    Compares against the novelty. Works for scalars and other instances of Experience
+__ne__(other)
+    Compares against the novelty. Works for scalars and other instances of Experience
+__str__()
+    Returns a string representation of Experience
+
+<a name="experience.Experience.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(nov: float, fVect: np.float32, grn: PIL.Image.Image)
+```
+
+Parameters
+__________
+nov : float
+    The measure of novelty, expressed as a float
+fVect : np.float32
+    A numpy.float32 1D array that holds the different features that represent this grain
+grn: PIL.Image.Image
+    A grain (image) to be remembered. This exists so we can reference it later
+
+Returns
+_______
+Experience
+
+<a name="experience.Experience.__lt__"></a>
+#### \_\_lt\_\_
+
+```python
+ | __lt__(other)
+```
+
+Parameters
+__________
+other : any
+
+Returns
+_______
+bool
+
+<a name="experience.Experience.__le__"></a>
+#### \_\_le\_\_
+
+```python
+ | __le__(other)
+```
+
+Parameters
+__________
+other : any
+
+Returns
+_______
+bool
+
+<a name="experience.Experience.__gt__"></a>
+#### \_\_gt\_\_
+
+```python
+ | __gt__(other)
+```
+
+Parameters
+__________
+other : any
+
+Returns
+_______
+bool
+
+<a name="experience.Experience.__ge__"></a>
+#### \_\_ge\_\_
+
+```python
+ | __ge__(other)
+```
+
+Parameters
+__________
+other : any
+
+Returns
+_______
+bool
+
+<a name="experience.Experience.__eq__"></a>
+#### \_\_eq\_\_
+
+```python
+ | __eq__(other)
+```
+
+Parameters
+__________
+other : any
+
+Returns
+_______
+bool
+
+<a name="experience.Experience.__ne__"></a>
+#### \_\_ne\_\_
+
+```python
+ | __ne__(other)
+```
+
+Parameters
+__________
+other : any
+
+Returns
+_______
+bool
+
+<a name="experience.Experience.__str__"></a>
+#### \_\_str\_\_
+
+```python
+ | __str__()
+```
+
+Parameters
+__________
+None
+
+Returns
+_______
+string
+
+<a name="memory"></a>
+# memory
+
+<a name="memory.Memory"></a>
 ## Memory Objects
 
 ```python
@@ -22,30 +188,30 @@ None
 
 Methods
 
-`__init__(maxLength: int = 30)`  
-    Initializes the memory unit with a default capacity of 30 Experience
+`__init__(maxLength: int = 32)`  
+    Initializes the memory unit with a default capacity of 32 Experiences
 `push(data: Experience)`  
-    Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the gratest act.Novelty
-`memIter() -> Generator`  
-    Creates an iterator that can be used to iterate over Experience instances
+    Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the greatest act.Novelty
+`memList() -> List[Experience]`  
+    Returns a list of Experience instances
 
-<a name="Memory.Memory.__init__"></a>
+<a name="memory.Memory.__init__"></a>
 #### \_\_init\_\_
 
 ```python
- | __init__(maxLength: int = 30)
+ | __init__(maxLength: int = 32)
 ```
 
-### Parameters
+Parameters
+---------
+maxLength : int  
+    The maximum number of experiences(Experience) that the memory unit can contain
 
-> maxLength : int  
->    > The maximum number of experiences(Experience) that the memory unit can contain
+Returns
+-------
+Memory
 
-### Returns
-
-> Memory
-
-<a name="Memory.Memory.push"></a>
+<a name="memory.Memory.push"></a>
 #### push
 
 ```python
@@ -61,11 +227,11 @@ Returns
 
 None
 
-<a name="Memory.Memory.memIter"></a>
-#### memIter
+<a name="memory.Memory.memList"></a>
+#### memList
 
 ```python
- | memIter() -> Generator
+ | memList() -> List[Experience]
 ```
 
 ### Parameters
@@ -74,8 +240,8 @@ None
 
 ### Returns
 
-> Generator
->    > An iterator that operates over all experiences (Experience) in memory
+> List[Experience]
+>    > A list of Experience objects
 
 <a name="map_helpers"></a>
 # map\_helpers
@@ -154,181 +320,10 @@ find_coordinates(rover_position, fov, width, height)
 
   A list of the cropping coordinates for each of the (max) four grains
 
-<a name="Experience"></a>
-# Experience
+<a name="artificial_curiosity_types"></a>
+# artificial\_curiosity\_types
 
-<a name="Experience.Experience"></a>
-## Experience Objects
-
-```python
-class Experience()
-```
-
-A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory and the Brain
-
-
-
-Attributes
-----------
-self.novelty : act.Novelty
-    A float that represents the movelty of the Experience
-self.featureVector : List[float]
-    A vector that holds the different features that represent this memory
-self.grain : act.Grain
-    An image that will show us what the machine remembers
-
-
-Methods
--------
-__init__(nov: act.Novelty, fVect: List[float], grn: act.Grain)
-    Initializes the Experience with the given novelty, feature vector, and image
-__lt__(other)
-    Compares against the novelty. Works for scalars and other instances of Experience
-__le__(other)
-    Compares against the novelty. Works for scalars and other instances of Experience
-__gt__(other)
-    Compares against the novelty. Works for scalars and other instances of Experience
-__ge__(other)
-    Compares against the novelty. Works for scalars and other instances of Experience
-__eq__(other)
-    Compares against the novelty. Works for scalars and other instances of Experience
-__ne__(other)
-    Compares against the novelty. Works for scalars and other instances of Experience
-__str__()
-    Returns a string representation of Experience
-
-<a name="Experience.Experience.__init__"></a>
-#### \_\_init\_\_
-
-```python
- | __init__(nov: act.Novelty, fVect: List[float], grn: act.Grain)
-```
-
-Parameters
-__________
-nov : act.Novelty
-    The measure of novelty, expressed as a float
-fVect : List[float]
-    A feature vector expressing the grain (image)
-grn: act.Image
-    A grain (image) to be remembered. This exists so we can reference it later
-
-Returns
-_______
-Experience
-
-<a name="Experience.Experience.__lt__"></a>
-#### \_\_lt\_\_
-
-```python
- | __lt__(other)
-```
-
-Parameters
-__________
-other : any
-
-Returns
-_______
-bool
-
-<a name="Experience.Experience.__le__"></a>
-#### \_\_le\_\_
-
-```python
- | __le__(other)
-```
-
-Parameters
-__________
-other : any
-
-Returns
-_______
-bool
-
-<a name="Experience.Experience.__gt__"></a>
-#### \_\_gt\_\_
-
-```python
- | __gt__(other)
-```
-
-Parameters
-__________
-other : any
-
-Returns
-_______
-bool
-
-<a name="Experience.Experience.__ge__"></a>
-#### \_\_ge\_\_
-
-```python
- | __ge__(other)
-```
-
-Parameters
-__________
-other : any
-
-Returns
-_______
-bool
-
-<a name="Experience.Experience.__eq__"></a>
-#### \_\_eq\_\_
-
-```python
- | __eq__(other)
-```
-
-Parameters
-__________
-other : any
-
-Returns
-_______
-bool
-
-<a name="Experience.Experience.__ne__"></a>
-#### \_\_ne\_\_
-
-```python
- | __ne__(other)
-```
-
-Parameters
-__________
-other : any
-
-Returns
-_______
-bool
-
-<a name="Experience.Experience.__str__"></a>
-#### \_\_str\_\_
-
-```python
- | __str__()
-```
-
-Parameters
-__________
-None
-
-Returns
-_______
-string
-
-<a name="testing"></a>
-# testing
-
-<a name="ArtificialCuriosityTypes"></a>
-# ArtificialCuriosityTypes
-
-<a name="ArtificialCuriosityTypes.addType"></a>
+<a name="artificial_curiosity_types.addType"></a>
 #### addType
 
 ```python
@@ -344,6 +339,89 @@ __________
 Returns
 _______
 None
+
+<a name="testing"></a>
+# testing
+
+<a name="novelty"></a>
+# novelty
+
+The novelty module creates functions to evaluate the novelty (loss) which
+are used in brain. The nevelty functions operate on the results of autoencoder
+novelty func. 1: l1_norm loss
+novelty func. 2: l2_norm loss
+novelty func. 3:
+
+<a name="brain"></a>
+# brain
+
+<a name="brain.Brain"></a>
+## Brain Objects
+
+```python
+class Brain()
+```
+
+<a name="brain.Brain.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(nov_thresh: float, novelty_loss_type: str, max_train_epochs: int = 100)
+```
+
+Initializes the Brain by creating CNN and AE
+
+Params
+------
+nov_thresh : float
+    The novelty cutoff used in training
+novelty_function: Callable
+    The callback that will be used to determine the novelty for any given feature-vector/reconstructed-vector pairs
+max_train_epochs: int
+    Maximum number of training epochs (in case avg loss is still not at novelty thresh)
+
+<a name="brain.Brain.add_grains"></a>
+#### add\_grains
+
+```python
+ | add_grains(grains: List[PIL.Image.Image])
+```
+
+Add new grains to memory
+
+Params:
+grains: List[PIL.Image.Image]
+List of new grains
+
+**Returns**:
+
+  List of novelty for new grains
+
+<a name="brain.Brain.evaluate_novelty"></a>
+#### evaluate\_novelty
+
+```python
+ | evaluate_novelty(grains: List[PIL.Image.Image])
+```
+
+Evaluate novelty of a list of grains
+
+Params:
+grains: List[PIL.Image.Image]
+List of new grains
+
+**Returns**:
+
+  List of novelty for new grains
+
+<a name="brain.Brain.learn_grains"></a>
+#### learn\_grains
+
+```python
+ | learn_grains()
+```
+
+Train the AE to learn new features from memory
 
 <a name="map"></a>
 # map

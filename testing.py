@@ -75,7 +75,15 @@ class MapTest(unittest.TestCase):
         m.get_fov((30, 30))
 
     def test_directions(self):
-        """ Aravind, please finish this test case """
+
+        m = Map("x.jpg", 30, 4)
+        width, height = m.img.size # width = 800, height = 534
+
+        self.assertEqual(m.clean_directions([(0, 0), (28, 300), (30, 29)]), [False, False, False])
+
+        self.assertEqual(m.clean_directions([(800, 534), (770, 300), (50, 505)]), [False, False, False])
+
+        self.assertEqual(m.clean_directions([(30, 30), (600, 504), (500, 500)]), [True, True, True])
         
 
 

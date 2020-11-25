@@ -12,10 +12,11 @@ File that has helper functions for the Map class
 
 def is_grey_scale(img):
 	"""
-	Parameters:
+	Parameter:
 		img: the PIL image object
 
-	Returns: A boolean indicating whether img is greyscale or not
+	Returns: 
+		A boolean indicating whether img is greyscale or not
 
 	"""
 
@@ -33,9 +34,11 @@ def is_grey_scale(img):
 
 def is_valid_position(img, fov, position):
 	"""
-	Parameters: The image, fov and position passed to get_fov in map.py
+	Parameters: 
+		The image, fov and position passed to get_fov in map.py
 
-	Returns: A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
+	Returns: 
+		A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
 
 	"""
 
@@ -55,10 +58,13 @@ def is_valid_position(img, fov, position):
 
 def find_sitting_pixels(position, width, height):
 	"""
-	Parameters: the position of the rover and width and height of the image
+	Parameters: 
+		position: the position of the rover
+		width: width (number of columns) of the image
+		height: height (number of rows) of the image
 
-	Returns: A dictionary that represents the 4 pixels that the rover is "sitting" on
-			 of the form {"position":(x, y), "above": (e, f), "right": (g, h), "top_right": (a, s)}
+	Returns: 
+		A dictionary that represents the 4 pixels that the rover is "sitting" on
 
 	"""
 
@@ -109,10 +115,14 @@ def find_sitting_pixels(position, width, height):
 
 def find_coordinates(rover_position, fov, width, height):
 	"""
-	Parameters: A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels,
-				The fov, width, height of image
+	Parameters: 
+		rover_position: A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels
+		fov: the fov
+		width: the width of the image
+		height: the height of the image
 
-	Returns: A list of the cropping coordinates for each of the (max) four grains
+	Returns: 
+		A list of the cropping coordinates for each of the (max) four grains
 
 	"""
 

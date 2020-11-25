@@ -1,0 +1,17 @@
+name: Testing
+on:
+  push:
+    branches:
+      - "**"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Setup Tools
+        run: sudo apt-get install -y python3-setuptools
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: pip3 install -r requirements.txt
+      - name: Run Tests
+        run: python3 ./testing.py

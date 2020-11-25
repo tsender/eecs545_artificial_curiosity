@@ -22,11 +22,11 @@ None
 
 Methods
 
-__init__(maxLength: int = 30)
+`__init__(maxLength: int = 30)`  
     Initializes the memory unit with a default capacity of 30 Experience
-push(data: Experience)
+`push(data: Experience)`  
     Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the gratest act.Novelty
-memIter() -> Generator
+`memIter() -> Generator`  
     Creates an iterator that can be used to iterate over Experience instances
 
 <a name="Memory.Memory.__init__"></a>
@@ -39,7 +39,7 @@ memIter() -> Generator
 ### Parameters
 
 > maxLength : int  
-    > The maximum number of experiences(Experience) that the memory unit can contain
+>    > The maximum number of experiences(Experience) that the memory unit can contain
 
 ### Returns
 
@@ -76,6 +76,83 @@ None
 
 > Generator
 >    > An iterator that operates over all experiences (Experience) in memory
+
+<a name="map_helpers"></a>
+# map\_helpers
+
+File that has helper functions for the Map class
+
+1. is_grey_scale(img) : Checks whether the given image is greyscale or color
+2. is_valid_position(img, fov, position): Checks whether the given position is valid or not
+3. find_sitting_pixels(position, width, height): Finds the pixel that the rover is "sitting" on
+4. find_coordinates(rover_position, fov, width, height): Finds the cropping coordinates that create grains
+
+<a name="map_helpers.is_grey_scale"></a>
+#### is\_grey\_scale
+
+```python
+is_grey_scale(img)
+```
+
+Parameter:
+img: the PIL image object
+
+**Returns**:
+
+  A boolean indicating whether img is greyscale or not
+
+<a name="map_helpers.is_valid_position"></a>
+#### is\_valid\_position
+
+```python
+is_valid_position(img, fov, position)
+```
+
+**Arguments**:
+
+  The image, fov and position passed to get_fov in map.py
+  
+
+**Returns**:
+
+  A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
+
+<a name="map_helpers.find_sitting_pixels"></a>
+#### find\_sitting\_pixels
+
+```python
+find_sitting_pixels(position, width, height)
+```
+
+**Arguments**:
+
+- `position` - the position of the rover
+- `width` - width (number of columns) of the image
+- `height` - height (number of rows) of the image
+  
+
+**Returns**:
+
+  A dictionary that represents the 4 pixels that the rover is "sitting" on
+
+<a name="map_helpers.find_coordinates"></a>
+#### find\_coordinates
+
+```python
+find_coordinates(rover_position, fov, width, height)
+```
+
+**Arguments**:
+
+- `rover_position` - A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels
+- `fov` - the fov
+- `width` - the width of the image
+- `height` - the height of the image
+  
+
+**Returns**:
+
+  A list of the cropping coordinates for each of the (max) four grains
 
 <a name="Experience"></a>
 # Experience
@@ -267,4 +344,82 @@ __________
 Returns
 _______
 None
+
+<a name="map"></a>
+# map
+
+<a name="map.Map"></a>
+## Map Objects
+
+```python
+class Map()
+```
+
+Map class that creates instances of the terrain map that the model will work on
+
+Methods
+
+`__init__(filepath: str, fov: int, sqrtGrains: int` 
+	initialize an instance of the given map and store fov and sqrtGrains
+
+`get_fov(position: tuple)` 
+	returns a list of grains (sub-images) with radius fov given the position of the model on the map
+
+`clean_directions(coordinates: list)` 
+	return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
+
+<a name="map.Map.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(filepath: str, fov: int, sqrtGrains: int)
+```
+
+**Arguments**:
+
+  
+- `filepath` - the stringpath containing the input terrain map -- can be a jpg or png
+- `fov` - an int radius of the field-of-view
+- `sqrtGrains` - The square root of the number of grains (sub-squares) in the fov -- an int
+  
+  
+
+**Returns**:
+
+  
+  A Map object with:
+  
+  The image from filepath (in greyscale),
+  fov,
+  sqrtGrains
+
+<a name="map.Map.get_fov"></a>
+#### get\_fov
+
+```python
+ | get_fov(position: tuple)
+```
+
+Parameter:
+position: Position of the rover on the map -- a tuple expected in (column, row)
+
+**Returns**:
+
+  
+  A list of the grains that have been split from the img with radius fov, i.e.
+  the legal squares that the rover can go to in fov steps
+
+<a name="map.Map.clean_directions"></a>
+#### clean\_directions
+
+```python
+ | clean_directions(coordinates: list)
+```
+
+Parameter:
+coordinates: A list of tuples that represent coordinates
+
+**Returns**:
+
+  A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
 

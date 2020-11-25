@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import PIL
+from PIL import Image
 import os
 import math
 from typing import List, Callable
@@ -81,7 +81,7 @@ class Brain:
 
         self._AE = tf.keras.Model(input_vec, output)
 
-    def _grain_to_tensor(self, grain_in: PIL.Image.Image):
+    def _grain_to_tensor(self, grain_in: Image.Image):
         """Convert a single grain to a tf.Tensor
 
         Params
@@ -99,11 +99,11 @@ class Brain:
         grain = tf.image.resize(grain, (self._image_width, self._image_width)) # Resize to CNN base input size
         return grain
 
-    def add_grains(self, grains: List[PIL.Image.Image]):
+    def add_grains(self, grains: List[Image.Image]):
         """Add new grains to memory
 
         Params:
-            grains: List[PIL.Image.Image]
+            grains: List[Image.Image]
                 List of new grains
 
         Returns:
@@ -125,11 +125,11 @@ class Brain:
             
         return nov_list
 
-    def evaluate_novelty(self, grains: List[PIL.Image.Image]):
+    def evaluate_novelty(self, grains: List[Image.Image]):
         """Evaluate novelty of a list of grains
 
         Params:
-            grains: List[PIL.Image.Image]
+            grains: List[Image.Image]
                 List of new grains
 
         Returns:
@@ -199,8 +199,8 @@ class Brain:
         self._learning_session += 1
 
 if __name__ == "__main__":
-    im = PIL.Image.open('data/x.jpg')
-    brain = Brain(0.15, 'MSE') # 0.25 seems to be the smallest reasonable value for novelty thresh
+    im = Image.open('data/x.jpg')
+    brain = Brain(0.25, 'MSE') # 0.25 seems to be the smallest reasonable value for novelty thresh
     grain_nov = brain.add_grains([im, im, im, im])
     print("Grain novelty (before): ", grain_nov)
     brain.learn_grains()

@@ -1,6 +1,6 @@
 from typing import Tuple, List, Generator
 import pprint
-import PIL
+from PIL import Image
 import numpy as np
 
 class Experience:
@@ -13,13 +13,13 @@ class Experience:
         A float that represents the movelty of the Experience
     self.featureVector : np.float32
         A numpy.float32 1D array that holds the different features that represent this memory
-    self.grain : PIL.Image.Image
+    self.grain : Image.Image
         An image that will show us what the machine remembers
 
 
     Methods
     -------
-    __init__(nov: float, fVect: np.float32, grn: PIL.Image.Image)
+    __init__(nov: float, fVect: np.float32, grn: Image.Image)
         Initializes the Experience with the given novelty, feature vector, and image
     __lt__(other)
         Compares against the novelty. Works for scalars and other instances of Experience
@@ -37,7 +37,7 @@ class Experience:
         Returns a string representation of Experience
     """
 
-    def __init__(self, nov: float, fVect: np.float32, grn: PIL.Image.Image):
+    def __init__(self, nov: float, fVect: np.float32, grn: Image.Image):
         """
         Parameters
         __________
@@ -45,7 +45,7 @@ class Experience:
             The measure of novelty, expressed as a float
         fVect : np.float32
             A numpy.float32 1D array that holds the different features that represent this grain
-        grn: PIL.Image.Image
+        grn: Image.Image
             A grain (image) to be remembered. This exists so we can reference it later
         
         Returns

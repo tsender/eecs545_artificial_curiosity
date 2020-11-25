@@ -43,7 +43,7 @@ class MemoryTest(unittest.TestCase):
 
 class MapTest(unittest.TestCase):
     def test_init(self):
-        m = Map("x.jpg", 30, 4)
+        m = Map("data/x.jpg", 30, 4)
 
         #  WARN: This might need to be addressed in future versions
         # self.assertEqual(m.sqrtGrains, 4 ** (1/2))
@@ -52,7 +52,7 @@ class MapTest(unittest.TestCase):
         self.assertIsInstance(m.img, act.Grain)
 
     def test_map_exceptions(self):
-        m = Map("x.jpg", 30, 4)
+        m = Map("data/x.jpg", 30, 4)
         width, height = m.img.size
 
         with self.assertRaises(Exception):
@@ -76,7 +76,7 @@ class MapTest(unittest.TestCase):
 
     def test_directions(self):
 
-        m = Map("x.jpg", 30, 4)
+        m = Map("data/x.jpg", 30, 4)
         width, height = m.img.size # width = 800, height = 534
 
         self.assertEqual(m.clean_directions([(0, 0), (28, 300), (30, 29)]), [False, False, False])

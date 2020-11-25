@@ -21,13 +21,13 @@ self.novelty : float
     A float that represents the movelty of the Experience
 self.featureVector : np.float32
     A numpy.float32 1D array that holds the different features that represent this memory
-self.grain : PIL.Image.Image
+self.grain : Image.Image
     An image that will show us what the machine remembers
 
 
 Methods
 -------
-__init__(nov: float, fVect: np.float32, grn: PIL.Image.Image)
+__init__(nov: float, fVect: np.float32, grn: Image.Image)
     Initializes the Experience with the given novelty, feature vector, and image
 __lt__(other)
     Compares against the novelty. Works for scalars and other instances of Experience
@@ -48,7 +48,7 @@ __str__()
 #### \_\_init\_\_
 
 ```python
- | __init__(nov: float, fVect: np.float32, grn: PIL.Image.Image)
+ | __init__(nov: float, fVect: np.float32, grn: Image.Image)
 ```
 
 Parameters
@@ -57,7 +57,7 @@ nov : float
     The measure of novelty, expressed as a float
 fVect : np.float32
     A numpy.float32 1D array that holds the different features that represent this grain
-grn: PIL.Image.Image
+grn: Image.Image
     A grain (image) to be remembered. This exists so we can reference it later
 
 Returns
@@ -340,6 +340,9 @@ Returns
 _______
 None
 
+<a name="__init__"></a>
+# \_\_init\_\_
+
 <a name="testing"></a>
 # testing
 
@@ -384,13 +387,13 @@ max_train_epochs: int
 #### add\_grains
 
 ```python
- | add_grains(grains: List[PIL.Image.Image])
+ | add_grains(grains: List[Image.Image])
 ```
 
 Add new grains to memory
 
 Params:
-grains: List[PIL.Image.Image]
+grains: List[Image.Image]
 List of new grains
 
 **Returns**:
@@ -401,13 +404,13 @@ List of new grains
 #### evaluate\_novelty
 
 ```python
- | evaluate_novelty(grains: List[PIL.Image.Image])
+ | evaluate_novelty(grains: List[Image.Image])
 ```
 
 Evaluate novelty of a list of grains
 
 Params:
-grains: List[PIL.Image.Image]
+grains: List[Image.Image]
 List of new grains
 
 **Returns**:

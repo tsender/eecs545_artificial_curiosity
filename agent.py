@@ -3,7 +3,7 @@ from typing import Tuple
 import abc
 from brain import Brain
 from map import Map
-
+import random
 
 class Motivation(metaclass=abc.ABCMeta):
 
@@ -11,48 +11,81 @@ class Motivation(metaclass=abc.ABCMeta):
     def get_from_position(self, position: Tuple[int]):
         pass
 
+    def _generate_positions(self, position):
+        lt = (position[0]-self.rate, position[1]+self.rate)
+        lb = (position[0]-self.rate, position[1]-self.rate)
+        rt = (position[0]+self.rate, position[1]+self.rate)
+        rb = (position[0]+self.rate, position[1]-self.rate)
+
+        return [lt, lb, rt, rb]
+
 
 class Curiosity(Motivation):
     def __init__(self, map: Map):
         self._brain = Brain(nov_thresh=0.25, novelty_loss_type='mse')
         self._map = map
+        self.rate = 1
 
     def get_from_position(self, position: Tuple[int]):
         grains = self._map.get_fov(position)
         novelty = self._brain.evaluate_novelty(grains)
-        positions = self._generate_positions()
-        can_move = self._map.clean_directions()
-        direction = self._max_pos(novelty)
-        return self._translate_position(direction)
+        new_positions = self._generate_positions(position)
+        position_filter = self._map.clean_directions(new_positions)
+        index = self._max_pos(novelty, position_filter)
+        return new_positions[index]
 
-    def _max_pos(self, lst=[]):
-        assert lst is not []
+    def _max_pos(self, lst=[], filter=[]):
+        assert lst is not [] and filter is not []
         pos = 0
-        max = lst[0]
+        max = min(lst)
 
+        # TODO: There might be some weird edge cases here
+        # because we could have 0 available positions (synthetically)
         for i in range(len(lst)):
-            if lst[i] > max:
+            if filter[i] and lst[i] > max:
                 max = lst[i]
                 pos = i
 
-        return pos    
+        return pos
 
-    def _generate_positions(self):
+class Brownian(Motivation):
+    def __init__(self, map: Map):
+        self._map = map
+        self.rate = 1
+
+    def get_from_position(self, position: Tuple[int]):
+        new_positions = self._generate_positions(position)
+        position_filter = self._map.clean_directions(new_positions)
+        index = random.choice([i for i in range(len(position_filter)) if position_filter[i]])
+
+        return new_positions[index]
+
+class Linear(Motivation):
+    def __init__(self, map: Map):
+        self._map = map
+        self.rate = 1
+        self.direction = random.randint(0,3)
+
+    def get_from_position(self, position: Tuple[int]):
+        new_positions = self._generate_positions(position)
+        position_filter = self._map.clean_directions(new_positions)
         
+        if position_filter[self.direction]:
+            return new_positions[self.direction]
+        else:
+            if self.direction == 0:
+                self.direction = 2
+            elif self.direction == 1:    
+                self.direction = 3
+            elif self.direction == 2:   
+                self.direection = 0
+            else:   
+                self.direction = 2 
+            
+            return self.get_from_position(position)
 
 
-
-class Generic_Agent:
-
-    def __init__(self, motivation: Motivation, position: Tuple[int] = (0, 0)):
-        assert motivation is not None
-
-        self._motivation = motivation
-        self.position = position
-        self.history = [position]
-
-    def step(self):
-        new_position = self._motivation.get_from_position(self.position)
-        self.history.append(new_position)
-        self.position = new_position
-
+if __name__ == "__main__":
+    map = Map('data/x.jpg', 30, 2)
+    test = Linear(map=map)
+    print(test.get_from_position((30, 30)))

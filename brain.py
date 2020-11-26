@@ -95,10 +95,12 @@ class Brain:
             The grain as a tf.Tensor
         """
 
-        grain = tf.keras.preprocessing.image.img_to_array(grain_in)
-        grain = tf.image.per_image_standardization(grain) # Transform images to zero mean and unit variance
-        grain = tf.image.resize(grain, (self._image_width, self._image_width)) # Resize to CNN base input size
-        return grain
+        rgb_grain = Image.new("RGB", grain_in.size)
+        rgb_grain.paste(rgb_grain)
+        rgb_grain = tf.keras.preprocessing.image.img_to_array(rgb_grain)
+        rgb_grain = tf.image.per_image_standardization(rgb_grain) # Transform images to zero mean and unit variance
+        rgb_grain = tf.image.resize(rgb_grain, (self._image_width, self._image_width)) # Resize to CNN base input size
+        return rgb_grain
 
     def add_grains(self, grains: List[Image.Image]):
         """Add new grains to memory
@@ -117,6 +119,7 @@ class Brain:
 
         for g in grains:
             gtf = self._grain_to_tensor(g)
+            print(gtf.shape)
             gtf = tf.reshape(gtf, (1, gtf.shape[0], gtf.shape[1], gtf.shape[2])) # Reshape to (1,H,W,C)
             fvec = self._CNN(gtf)
             pred_fvec = self._AE(fvec)

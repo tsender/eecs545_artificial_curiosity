@@ -23,27 +23,27 @@ class Brain:
         max_train_epochs: int
             Maximum number of training epochs (in case avg loss is still not at novelty thresh)
         """
+        
+        assert max_train_epochs > 0
 
+        self._max_train_epochs = max_train_epochs
         self.memory = Memory() # The brain should handle the memory module
         self.nov_thresh = nov_thresh
         self._learning_session = 1
-        assert max_train_epochs > 0
-        self._max_train_epochs = max_train_epochs
+        self._loss_functions = { \
+            "mae": tf.keras.losses.MeanAbsoluteError(), \
+            "mse": tf.keras.losses.MeanSquaredError(), \
+        }
 
-        if novelty_loss_type == 'MAE' or novelty_loss_type == 'mae':
-            self.novelty_function = tf.keras.losses.MeanAbsoluteError()
-        elif novelty_loss_type == 'MSE' or novelty_loss_type == 'mse':
-            self.novelty_function = tf.keras.losses.MeanSquaredError()
-        else:
+        if novelty_loss_type.lower() not in self._loss_functions:
             print("Novelty loss type not recognized. Exiting.")
             exit(1)
+
+        self.novelty_function = self._loss_functions[novelty_loss_type.lower()]
 
         # Parameters so we don't have any "magic numbers"
         self._batch_size = 4
         self._image_width = 224
-        self._fvec_size = 4096
-        self._ae_l1_fmaps = self._fvec_size ** (1/2)
-        self._ae_l2_fmaps = self._fvec_size ** (1/2)
         
         # Create models and optimizer
         self._init_CNN()
@@ -56,7 +56,8 @@ class Brain:
         """Initialize the Convolutional Neural Network"""
 
         # Create the base CNN model
-        self._CNN_Base = tf.keras.applications.VGG16(include_top=True) # Use different CNN base?
+        # TODO: Use different CNN base?
+        self._CNN_Base = tf.keras.applications.VGG16(include_top=True)
         self._CNN_Base.trainable = False
         self._CNN = tf.keras.Model(self._CNN_Base.input, self._CNN_Base.layers[-1].input) # Use last FC layer as output
 
@@ -185,7 +186,7 @@ class Brain:
 
         while cur_avg_loss >= self.nov_thresh:
             cur_avg_loss = 0
-            for batch in range(num_batches):
+            for _ in range(num_batches):
                 data = dataset.next()
                 loss = self._train_step_ae(data).numpy()
                 cur_avg_loss += (loss/num_batches)

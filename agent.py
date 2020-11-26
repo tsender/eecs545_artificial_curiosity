@@ -5,17 +5,18 @@ from brain import Brain
 from map import Map
 import random
 
-class Motivation(metaclass=abc.ABCMeta):
+RATE = 1
 
+class Motivation(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_from_position(self, position: Tuple[int]):
         pass
 
     def _generate_positions(self, position):
-        lt = (position[0]-self.rate, position[1]+self.rate)
-        lb = (position[0]-self.rate, position[1]-self.rate)
-        rt = (position[0]+self.rate, position[1]+self.rate)
-        rb = (position[0]+self.rate, position[1]-self.rate)
+        lt = (position[0]-RATE, position[1]+RATE)
+        lb = (position[0]-RATE, position[1]-RATE)
+        rt = (position[0]+RATE, position[1]+RATE)
+        rb = (position[0]+RATE, position[1]-RATE)
 
         return [lt, lb, rt, rb]
 
@@ -24,7 +25,6 @@ class Curiosity(Motivation):
     def __init__(self, map: Map):
         self._brain = Brain(nov_thresh=0.25, novelty_loss_type='mse')
         self._map = map
-        self.rate = 1
 
     def get_from_position(self, position: Tuple[int]):
         grains = self._map.get_fov(position)
@@ -51,7 +51,6 @@ class Curiosity(Motivation):
 class Brownian(Motivation):
     def __init__(self, map: Map):
         self._map = map
-        self.rate = 1
 
     def get_from_position(self, position: Tuple[int]):
         new_positions = self._generate_positions(position)
@@ -63,7 +62,6 @@ class Brownian(Motivation):
 class Linear(Motivation):
     def __init__(self, map: Map):
         self._map = map
-        self.rate = 1
         self.direction = random.randint(0,3)
 
     def get_from_position(self, position: Tuple[int]):
@@ -87,5 +85,7 @@ class Linear(Motivation):
 
 if __name__ == "__main__":
     map = Map('data/x.jpg', 30, 2)
-    test = Linear(map=map)
-    print(test.get_from_position((30, 30)))
+
+    print(Curiosity(map=map).get_from_position((30, 30)))
+    print(Brownian(map=map).get_from_position((30, 30)))
+    print(Linear(map=map).get_from_position((30, 30)))

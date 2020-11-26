@@ -4,7 +4,7 @@ from PIL import Image
 import tensorflow as tf
 
 # New types to simplify typing for this project
-ArtificialCuriosityTypes = SimpleNamespace()
+Artificial_Curiosity_Types = SimpleNamespace()
 
 def addType(**args):
     """Makes it easier to add types that reference other custom types
@@ -17,7 +17,7 @@ def addType(**args):
         _______
         None
         """
-    ArtificialCuriosityTypes.__dict__.update(args)
+    Artificial_Curiosity_Types.__dict__.update(args)
 
 # A type that simply notates where novelty should be used
 addType(Novelty=float)

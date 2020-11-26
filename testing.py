@@ -1,6 +1,6 @@
 from experience import Experience
 from memory import Memory
-from artificial_curiosity_types import ArtificialCuriosityTypes as act
+from artificial_curiosity_types import Artificial_Curiosity_Types as act
 from map import Map
 from PIL import Image
 import unittest

@@ -1,6 +1,6 @@
 import heapq
 from typing import Tuple, List, Generator
-from artificial_curiosity_types import ArtificialCuriosityTypes as act
+from artificial_curiosity_types import Artificial_Curiosity_Types as act
 from experience import Experience
 import pprint
 from PIL import Image

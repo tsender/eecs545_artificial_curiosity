@@ -19,7 +19,7 @@ class Memory:
     `__init__(maxLength: int = 32)`  
         Initializes the memory unit with a default capacity of 32 Experiences
     `push(data: Experience)`  
-        Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the greatest act.Novelty
+        Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the smallest act.Novelty
     `memList() -> List[Experience]`  
         Returns a list of Experience instances
     """

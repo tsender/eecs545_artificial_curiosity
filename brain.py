@@ -119,7 +119,6 @@ class Brain:
 
         for g in grains:
             gtf = self._grain_to_tensor(g)
-            print(gtf.shape)
             gtf = tf.reshape(gtf, (1, gtf.shape[0], gtf.shape[1], gtf.shape[2])) # Reshape to (1,H,W,C)
             fvec = self._CNN(gtf)
             pred_fvec = self._AE(fvec)

@@ -43,10 +43,10 @@ class Map:
 
 		
 		img = Image.open(Path(filepath))
-		grey_scale = mh.is_grey_scale(img) # check if the image is greyscale
+		# grey_scale = mh.is_grey_scale(img) # check if the image is greyscale
 
-		if not grey_scale:
-			img = img.convert('L') # convert image to greyscale
+		# if not grey_scale:
+		img = img.convert('L') # convert image to greyscale
 
 		self.img = img
 

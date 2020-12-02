@@ -53,6 +53,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
         for agent in agent_lst:
             # Splits x and y into separate lists (technically tuples)
             x, y = zip(*agent.history)
+            print(x, "\n\n\n")
             # Plot those points on the graph. The lines are transparent because
             # sometimes the agents cross over each other and you still want to
             # see the paths of those underneath
@@ -209,8 +210,46 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
                 wr.writerow(fields)
                 wr.writerows(agent.history)
 
+
+def load_data(path: str):
+    """
+    Loads information from a given file
+
+    Params
+    ------
+
+    path: str
+        The path to the file
+
+    Returns
+    -------
+
+    List[Tuple[int]]
+        Returns a list of x and y coordinates
+
+    """
+
+    # Makes sure that the path is given and that the file is a csv file
+    assert path != None and path.split(".")[-1] == "csv"
+
+    # Create a list to hold the coordinates as they're read from the file
+    lst_content = []
+
+    # Open the csv file
+    with open(path, 'r', newline='') as agent_p_file:
+        # Create a csv reader to read the information out of it
+        csv_reader = csv.reader(agent_p_file, delimiter=',')
+        # Iterate through all rows
+        for row in csv_reader:
+            # Add each row of data to our list of points
+            lst_content.append(row)
+
+    # Changing the rows from lists of strings to tuples of ints
+    # (and also removing the headers)
+    return list(map(lambda x: tuple(map(int, x)), lst_content[1:]))
+
 if __name__ == "__main__":
-    map = Map('data/mars.png', 64, 2)
+    m = Map('data/mars.png', 64, 2)
 
     run_experiment([Linear, Linear, Linear], [(64, 64), (2000, 1000), (250, 200)],
-                   map, 100, saveLocation=True, saveGraph=True, dirname="./output_dir")
+                   m, 100, saveLocation=True, saveGraph=True, dirname="./output_dir")

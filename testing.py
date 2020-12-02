@@ -8,24 +8,24 @@ import unittest
 class ExperienceTest(unittest.TestCase):
     # Testing positive comparisons
     def test_positive(self):
-        self.assertTrue(Experience(1, 0, 0) > Experience(0, 0, 0))
-        self.assertTrue(Experience(1, 0, 0) > Experience(0, 0, 0))
-        self.assertTrue(Experience(1, 0, 0) >= Experience(0, 0, 0))
-        self.assertTrue(Experience(1, 0, 0) >= Experience(1, 0, 0))
-        self.assertTrue(Experience(1, 0, 0) == Experience(1, 0, 0))
-        self.assertTrue(Experience(1, 0, 0) <= Experience(1, 0, 0))
-        self.assertTrue(Experience(0, 0, 0) <= Experience(1, 0, 0))
-        self.assertTrue(Experience(0, 0, 0) < Experience(1, 0, 0))
-        self.assertTrue(Experience(0, 0, 0) != Experience(1, 0, 0))
+        self.assertTrue(Experience(1, 0) > Experience(0, 0))
+        self.assertTrue(Experience(1, 0) > Experience(0, 0))
+        self.assertTrue(Experience(1, 0) >= Experience(0, 0))
+        self.assertTrue(Experience(1, 0) >= Experience(1, 0))
+        self.assertTrue(Experience(1, 0) == Experience(1, 0))
+        self.assertTrue(Experience(1, 0) <= Experience(1, 0))
+        self.assertTrue(Experience(0, 0) <= Experience(1, 0))
+        self.assertTrue(Experience(0, 0) < Experience(1, 0))
+        self.assertTrue(Experience(0, 0) != Experience(1, 0))
 
     # Testing negative comparisons
     def test_negative(self):
-        self.assertFalse(Experience(0, 0, 0) > Experience(1, 0, 0))
-        self.assertFalse(Experience(0, 0, 0) >= Experience(1, 0, 0))
-        self.assertFalse(Experience(0, 0, 0) == Experience(1, 0, 0))
-        self.assertFalse(Experience(1, 0, 0) <= Experience(0, 0, 0))
-        self.assertFalse(Experience(1, 0, 0) < Experience(0, 0, 0))
-        self.assertFalse(Experience(0, 0, 0) != Experience(0, 0, 0))
+        self.assertFalse(Experience(0, 0) > Experience(1, 0))
+        self.assertFalse(Experience(0, 0) >= Experience(1, 0))
+        self.assertFalse(Experience(0, 0) == Experience(1, 0))
+        self.assertFalse(Experience(1, 0) <= Experience(0, 0))
+        self.assertFalse(Experience(1, 0) < Experience(0, 0))
+        self.assertFalse(Experience(0, 0) != Experience(0, 0))
 
 
 class MemoryTest(unittest.TestCase):

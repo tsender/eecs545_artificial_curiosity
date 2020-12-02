@@ -11,15 +11,13 @@ class Experience:
     ----------
     self.novelty : float
         A float that represents the movelty of the Experience
-    self.featureVector : np.float32
-        A numpy.float32 1D array that holds the different features that represent this memory
     self.grain : Image.Image
         An image that will show us what the machine remembers
 
 
     Methods
     -------
-    __init__(nov: float, fVect: np.float32, grn: Image.Image)
+    __init__(nov: float, grn: Image.Image)
         Initializes the Experience with the given novelty, feature vector, and image
     __lt__(other)
         Compares against the novelty. Works for scalars and other instances of Experience
@@ -37,14 +35,12 @@ class Experience:
         Returns a string representation of Experience
     """
 
-    def __init__(self, nov: float, fVect: np.float32, grn: Image.Image):
+    def __init__(self, nov: float, grn: Image.Image):
         """
         Parameters
         __________
         nov : float
             The measure of novelty, expressed as a float
-        fVect : np.float32
-            A numpy.float32 1D array that holds the different features that represent this grain
         grn: Image.Image
             A grain (image) to be remembered. This exists so we can reference it later
         
@@ -54,7 +50,6 @@ class Experience:
         """
 
         self.novelty = nov
-        self.featureVector = fVect
         self.grain = grn
 
     def __lt__(self, other):
@@ -147,10 +142,10 @@ class Experience:
 if __name__ == "__main__":
     pp = pprint.PrettyPrinter(indent=4)
 
-    print(Experience(0, None, None) <  Experience(1, None, None))
-    print(Experience(0, None, None) <= Experience(1, None, None))
-    print(Experience(0, None, None) >  Experience(1, None, None))
-    print(Experience(0, None, None) >= Experience(1, None, None))
-    print(Experience(0, None, None) == Experience(1, None, None))
-    print(Experience(0, None, None) != Experience(1, None, None))
-    pp.pprint(Experience(0, None, None))
+    print(Experience(0, None) <  Experience(1, None))
+    print(Experience(0, None) <= Experience(1, None))
+    print(Experience(0, None) >  Experience(1, None))
+    print(Experience(0, None) >= Experience(1, None))
+    print(Experience(0, None) == Experience(1, None))
+    print(Experience(0, None) != Experience(1, None))
+    pp.pprint(Experience(0, None))

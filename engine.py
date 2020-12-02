@@ -207,7 +207,7 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
             with open(dirname + '/' + filename + '.csv', 'w', newline='') as f:
                 wr = csv.writer(f)
                 wr.writerow(fields)
-                wr.writerows(zip(agent_histroy[0], agent_histroy[1]))
+                wr.writerows(agent.history)
 
 if __name__ == "__main__":
     map = Map('data/mars.png', 64, 2)

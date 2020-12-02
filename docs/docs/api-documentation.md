@@ -191,7 +191,7 @@ Methods
 `__init__(maxLength: int = 32)`  
     Initializes the memory unit with a default capacity of 32 Experiences
 `push(data: Experience)`  
-    Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the greatest act.Novelty
+    Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the smallest act.Novelty
 `memList() -> List[Experience]`  
     Returns a list of Experience instances
 
@@ -242,6 +242,85 @@ None
 
 > List[Experience]
 >    > A list of Experience objects
+
+<a name="engine"></a>
+# engine
+
+<a name="engine.save_agent_data"></a>
+#### save\_agent\_data
+
+```python
+save_agent_data()
+```
+
+This function will be used to save important information about the model, such as its path
+
+<a name="engine.plot_paths"></a>
+#### plot\_paths
+
+```python
+plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname: str)
+```
+
+Plots out the paths of the agents on the map
+
+Params
+------
+map: Map
+    A map that will be used to get the bounds and background for plotting
+
+agent_lst: List[Agent]
+    A list of agents whose paths need to be plotted
+
+show: bool
+    Whether the plots should be displayed or not
+
+save: bool
+    Whether the plots should be saved to the disk or not
+
+dirname: str
+    The directory where the images will be stored
+
+Returns
+-------
+None
+
+<a name="engine.run_experiment"></a>
+#### run\_experiment
+
+```python
+run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save: bool = False, dirname: str = None)
+```
+
+Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
+
+Params
+------
+motivation_lst: List[Motivation]
+    A list of Motivation class instances to be used as the drivers for agents. This must be the same length as position_lst
+
+position_lst: List[Tuple[int]]
+    A list of poitions for the agents to start out at (matching indices with elements from motivation_lst). It must be the same length as potivation_lst.
+
+map: Map
+    An instance of the Map class that will be used by the agent to handle directions, and for the plotting
+
+iterations: int
+    The number of steps that each agent should take.
+
+show: bool=True
+    Whether the graphs should be displayed
+
+save: bool=False
+    Whether the graphs should be saved
+
+dirname: str=None
+    The directory in which the graphs will be stored
+
+
+Returns
+-------
+None
 
 <a name="map_helpers"></a>
 # map\_helpers
@@ -345,6 +424,97 @@ None
 
 <a name="agent"></a>
 # agent
+
+<a name="agent.Motivation"></a>
+## Motivation Objects
+
+```python
+class Motivation(, metaclass=abc.ABCMeta)
+```
+
+This is an abstract class that represents the decision making process (or motivation) behind an agent
+
+<a name="agent.Motivation.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | @abc.abstractmethod
+ | get_from_position(position: Tuple[int])
+```
+
+This will get the agents next position based on the current position passed to it
+
+<a name="agent.Curiosity"></a>
+## Curiosity Objects
+
+```python
+class Curiosity(Motivation)
+```
+
+This class extends Motivation and creates a curious motivation for an agent
+
+<a name="agent.Curiosity.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | get_from_position(position: Tuple[int])
+```
+
+Implements the abstract method from Motivation. Gets the next position from the current position
+
+<a name="agent.Random"></a>
+## Random Objects
+
+```python
+class Random(Motivation)
+```
+
+This class extends Motivation, and randomly selects a position based on what is available
+
+<a name="agent.Random.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | get_from_position(position: Tuple[int])
+```
+
+Implements the abstract method from Motivation. Gets the next position from the current position
+
+<a name="agent.Linear"></a>
+## Linear Objects
+
+```python
+class Linear(Motivation)
+```
+
+This class extends Motivation, and is designed to move on a linear path
+
+<a name="agent.Linear.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | get_from_position(position: Tuple[int])
+```
+
+Implements the abstract method from Motivation. Gets the next position from the current position
+
+<a name="agent.Agent"></a>
+## Agent Objects
+
+```python
+class Agent()
+```
+
+This abtracts the motivation away so that we can iterate over them later
+
+<a name="agent.Agent.step"></a>
+#### step
+
+```python
+ | step()
+```
+
+This performs a simple step for the agent, moving it from one position to the next
 
 <a name="testing"></a>
 # testing

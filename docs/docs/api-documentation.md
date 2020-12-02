@@ -246,15 +246,6 @@ None
 <a name="engine"></a>
 # engine
 
-<a name="engine.save_agent_data"></a>
-#### save\_agent\_data
-
-```python
-save_agent_data()
-```
-
-This function will be used to save important information about the model, such as its path
-
 <a name="engine.plot_paths"></a>
 #### plot\_paths
 
@@ -275,8 +266,8 @@ agent_lst: List[Agent]
 show: bool
     Whether the plots should be displayed or not
 
-save: bool
-    Whether the plots should be saved to the disk or not
+save: bool=False
+    Whether the graphs should be saved
 
 dirname: str
     The directory where the images will be stored
@@ -289,7 +280,7 @@ None
 #### run\_experiment
 
 ```python
-run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save: bool = False, dirname: str = None)
+run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, saveGraph: bool = False, saveLocation: bool = True, dirname: str = None)
 ```
 
 Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
@@ -311,8 +302,11 @@ iterations: int
 show: bool=True
     Whether the graphs should be displayed
 
-save: bool=False
-    Whether the graphs should be saved
+saveGraph: bool
+    Whether the plots should be saved to the disk or not
+
+saveLoction: bool
+    Whether the agent's position should be save to the disk
 
 dirname: str=None
     The directory in which the graphs will be stored
@@ -321,6 +315,31 @@ dirname: str=None
 Returns
 -------
 None
+
+<a name="engine.save_agent_data"></a>
+#### save\_agent\_data
+
+```python
+save_agent_data(agent_lst: List[Agent], save: bool, dirname: str)
+```
+
+Save the path record of each agent as a csv file
+
+Params:
+------
+agent_lst: List[Agent]
+A list of agent whose path coordinates to be saved
+
+save: bool
+Save the agent's path data or not
+
+dirname: str
+THe directory name where the csv file will be saved
+
+**Returns**:
+
+  ------
+  None
 
 <a name="map_helpers"></a>
 # map\_helpers

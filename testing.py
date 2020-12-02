@@ -36,7 +36,7 @@ class MemoryTest(unittest.TestCase):
     def test_push(self):
         m = Memory(5)
         for i in range(6):
-            m.push(Experience(i, None, None))
+            m.push(Experience(i, None))
 
         for i in m.memList():
             self.assertNotEqual(i.novelty, 0)

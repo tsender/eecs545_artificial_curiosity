@@ -127,9 +127,9 @@ def create_network128():
     d = tf.keras.layers.Conv2D(32, (3,3), padding='same', activation='relu', kernel_initializer=tf.initializers.he_normal())(d)
     d = tf.keras.layers.UpSampling2D()(d) # Shape (B, 128, 128, 32)
     d = tf.keras.layers.Conv2D(32, (3,3), padding='same', activation='relu', kernel_initializer=tf.initializers.he_normal())(d)
-    out_img = tf.keras.layers.Conv2D(1, (3,3), padding='same', activation='relu', kernel_initializer=tf.initializers.he_normal())(d)
+    out_image = tf.keras.layers.Conv2D(1, (3,3), padding='same', activation='relu', kernel_initializer=tf.initializers.he_normal())(d)
 
-    model = tf.keras.Model(in_image, out_img)
+    model = tf.keras.Model(in_image, out_image)
     return model
 
 if __name__ == "__main__":

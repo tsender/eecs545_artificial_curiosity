@@ -5,7 +5,7 @@ import numpy as np
 
 class Experience:
     """
-    A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory and the Brain
+    A type for a measure of novelty and an associated image. This is meant to be used by the Memory and the Brain
 
     Attributes
     ----------

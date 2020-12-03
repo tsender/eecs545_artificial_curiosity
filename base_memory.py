@@ -1,9 +1,10 @@
 import heapq
 from typing import Tuple, List, Generator
-from experience import Experience
 import pprint
 import abc
 from PIL import Image
+
+from experience import Experience
 
 class BaseMemory(metaclass=abc.ABCMeta):
     """
@@ -11,15 +12,15 @@ class BaseMemory(metaclass=abc.ABCMeta):
 
     Methods
 
-    `__init__(maxLength: int = 32)`  
-        Initializes the memory unit with a default capacity of 32 Experiences
+    `__init__(maxLength: int = 64)`  
+        Initializes the memory unit with a default capacity of 64 Experiences
     `push(data: Experience)`  
         Adds an Experience to the memory unit.
     `as_list() -> List[Experience]`  
         Returns a list of Experience instances
     """
 
-    def __init__(self, max_length: int = 32):
+    def __init__(self, max_length: int = 64):
         """
         Args:
             maxLength : int  

@@ -1,16 +1,18 @@
 from typing import Tuple, List, Generator
-from experience import Experience
 import pprint
 import heapq
-import base_memory
 from PIL import Image
 
-class PriorityMemory(base_memory.Basememory):
+from base_memory import BaseMemory
+from experience import Experience
+
+class PriorityBasedMemory(BaseMemory):
     """
-    Memory class that uses a priority queue based on an experience's novelty
+    Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
+    Low novelty corresponds to higher priority (also makes it easier to remove the experience).
     """
 
-    def __init__(self, max_length: int = 32):
+    def __init__(self, max_length: int = 64):
         super().__init__(max_length)
 
     def push(self, data: Experience):
@@ -28,7 +30,7 @@ class PriorityMemory(base_memory.Basememory):
 
 if __name__ == "__main__":
     print = pprint.PrettyPrinter(indent=4).pprint
-    m = PriorityMemory(5)
+    m = PriorityBasedMemory(5)
     for i in range(5):
         m.push(Experience(i, None))
 

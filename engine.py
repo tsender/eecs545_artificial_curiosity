@@ -3,11 +3,7 @@ from map import Map
 from agent import Agent, Curiosity, Linear, Random, Motivation
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-
-def save_agent_data():
-    """This function will be used to save important information about the model, such as its path"""
-
-    pass
+import csv
 
 # TODO: Might want to make more efficient so that graphing doesn't take so long
 
@@ -26,8 +22,8 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
     show: bool
         Whether the plots should be displayed or not
     
-    save: bool
-        Whether the plots should be saved to the disk or not
+    save: bool=False
+        Whether the graphs should be saved
 
     dirname: str
         The directory where the images will be stored
@@ -111,7 +107,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
                 plt.show()
 
 
-def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save: bool = False, dirname: str = None):
+def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, saveGraph: bool = False, saveLocation: bool = True, dirname: str = None):
     """Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
     
     Params
@@ -131,8 +127,11 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
     show: bool=True
         Whether the graphs should be displayed
 
-    save: bool=False
-        Whether the graphs should be saved
+    saveGraph: bool
+        Whether the plots should be saved to the disk or not
+
+    saveLoction: bool
+        Whether the agent's position should be save to the disk
 
     dirname: str=None
         The directory in which the graphs will be stored
@@ -146,7 +145,7 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
 
     # Make sure that the parameters are valid
     assert len(motivation_lst) == len(position_lst)
-    assert save == False or dirname is not None
+    assert (saveGraph == False and saveLocation == False) or dirname is not None
 
     agent_lst = []
 
@@ -172,11 +171,46 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
             t_iter.update()
 
     # Graph the agent's paths
-    plot_paths(map, agent_lst, show, save, dirname)
+    plot_paths(map, agent_lst, show, saveGraph, dirname)
 
-    save_agent_data()
+    save_agent_data(agent_lst, saveLocation, dirname)
+
+
+def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
+    """
+    Save the path record of each agent as a csv file
+    
+    Params:
+    ------
+    agent_lst: List[Agent]
+        A list of agent whose path coordinates to be saved
+    
+    save: bool
+        Save the agent's path data or not
+    
+    dirname: str
+        THe directory name where the csv file will be saved
+
+    Returns:
+    ------
+    None
+    """
+    for agent in agent_lst:
+        # read agent history
+        agent_histroy = agent.history
+
+        if save:
+            fields = ['x', 'y']
+            filename = str(agent).replace(" ", "_").replace(
+                "(", "").replace(")", "").replace(",", "_") + '_path_record'
+
+            with open(dirname + '/' + filename + '.csv', 'w', newline='') as f:
+                wr = csv.writer(f)
+                wr.writerow(fields)
+                wr.writerows(zip(agent_histroy[0], agent_histroy[1]))
 
 if __name__ == "__main__":
     map = Map('data/mars.png', 64, 2)
 
-    run_experiment([Linear, Linear, Linear], [(64, 64), (2000, 1000), (250, 200)], map, 100, save=True, dirname="./output_dir")
+    run_experiment([Linear, Linear, Linear], [(64, 64), (2000, 1000), (250, 200)],
+                   map, 100, saveLocation=True, saveGraph=True, dirname="./output_dir")

@@ -13,21 +13,19 @@ title: API Documentation
 class Experience()
 ```
 
-A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory and the Brain
+A type for a measure of novelty and an associated image. This is meant to be used by the Memory and the Brain
 
 Attributes
 ----------
 self.novelty : float
     A float that represents the movelty of the Experience
-self.featureVector : np.float32
-    A numpy.float32 1D array that holds the different features that represent this memory
 self.grain : Image.Image
     An image that will show us what the machine remembers
 
 
 Methods
 -------
-__init__(nov: float, fVect: np.float32, grn: Image.Image)
+__init__(nov: float, grn: Image.Image)
     Initializes the Experience with the given novelty, feature vector, and image
 __lt__(other)
     Compares against the novelty. Works for scalars and other instances of Experience
@@ -48,15 +46,13 @@ __str__()
 #### \_\_init\_\_
 
 ```python
- | __init__(nov: float, fVect: np.float32, grn: Image.Image)
+ | __init__(nov: float, grn: Image.Image)
 ```
 
 Parameters
 __________
 nov : float
     The measure of novelty, expressed as a float
-fVect : np.float32
-    A numpy.float32 1D array that holds the different features that represent this grain
 grn: Image.Image
     A grain (image) to be remembered. This exists so we can reference it later
 
@@ -169,79 +165,210 @@ Returns
 _______
 string
 
-<a name="memory"></a>
-# memory
+<a name="list_based_memory"></a>
+# list\_based\_memory
 
-<a name="memory.Memory"></a>
-## Memory Objects
-
-```python
-class Memory()
-```
-
-This class abstracts away the specific implementation of an autonomous agent's memory unit
-
-Attributes
-
-None
-
-
-Methods
-
-`__init__(maxLength: int = 32)`  
-    Initializes the memory unit with a default capacity of 32 Experiences
-`push(data: Experience)`  
-    Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the smallest act.Novelty
-`memList() -> List[Experience]`  
-    Returns a list of Experience instances
-
-<a name="memory.Memory.__init__"></a>
-#### \_\_init\_\_
+<a name="list_based_memory.ListBasedMemory"></a>
+## ListBasedMemory Objects
 
 ```python
- | __init__(maxLength: int = 32)
+class ListBasedMemory(BaseMemory)
 ```
 
-Parameters
----------
-maxLength : int  
-    The maximum number of experiences(Experience) that the memory unit can contain
+Memory class that uses a simple fixed-length list to store the latest experiences.
 
-Returns
--------
-Memory
-
-<a name="memory.Memory.push"></a>
+<a name="list_based_memory.ListBasedMemory.push"></a>
 #### push
 
 ```python
  | push(data: Experience)
 ```
 
-### Parameters
+Add an experience to memory
 
-> data : Experience  
->    > Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
+Args
+    data : Experience  
+        An experience to add. If full, remove oldest experience and add new experience.
 
-Returns
+<a name="base_memory"></a>
+# base\_memory
 
-None
-
-<a name="memory.Memory.memList"></a>
-#### memList
+<a name="base_memory.BaseMemory"></a>
+## BaseMemory Objects
 
 ```python
- | memList() -> List[Experience]
+class BaseMemory(, metaclass=abc.ABCMeta)
 ```
 
-### Parameters
+Base memory class for the agent's brain.
 
-> None
+Methods
 
-### Returns
+`__init__(maxLength: int = 64)`  
+    Initializes the memory unit with a default capacity of 64 Experiences
+`push(data: Experience)`  
+    Adds an Experience to the memory unit.
+`as_list() -> List[Experience]`  
+    Returns a list of Experience instances
 
-> List[Experience]
->    > A list of Experience objects
+<a name="base_memory.BaseMemory.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(max_length: int = 64)
+```
+
+**Arguments**:
+
+  maxLength : int
+  The maximum number of experiences(Experience) that the memory unit can contain
+
+<a name="base_memory.BaseMemory.push"></a>
+#### push
+
+```python
+ | @abc.abstractmethod
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add
+
+<a name="base_memory.BaseMemory.as_list"></a>
+#### as\_list
+
+```python
+ | as_list() -> List[Experience]
+```
+
+Returns a copy of the current memory
+
+Returns
+    A list of Experience objects
+
+<a name="networks"></a>
+# networks
+
+<a name="networks.create_network"></a>
+#### create\_network
+
+```python
+create_network(image_size: Tuple)
+```
+
+Create the CNN-AE based on the input image size. Only square grey scale images allowed.
+The input and output sizes for the network are the same.
+
+**Arguments**:
+
+- `image_size` - Tuple
+  Image size as Tuple of (H,W,C)
+  
+
+**Returns**:
+
+  A tensorflow model for the network.
+
+<a name="networks.create_network32"></a>
+#### create\_network32
+
+```python
+create_network32()
+```
+
+Create the network for input size of (32, 32, 1)
+
+<a name="networks.create_network64"></a>
+#### create\_network64
+
+```python
+create_network64()
+```
+
+Create the network for input size of (64, 64, 1)
+
+<a name="networks.create_network128"></a>
+#### create\_network128
+
+```python
+create_network128()
+```
+
+Create the network for input size of (128, 128, 1)
+
+<a name="base_brain"></a>
+# base\_brain
+
+<a name="base_brain.BaseBrain"></a>
+## BaseBrain Objects
+
+```python
+class BaseBrain()
+```
+
+<a name="base_brain.BaseBrain.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(nov_thresh: float, novelty_loss_type: str, max_train_epochs: int = 100)
+```
+
+Initializes the Brain by creating CNN and AE
+
+Params
+------
+nov_thresh : float
+    The novelty cutoff used in training
+novelty_function: Callable
+    The callback that will be used to determine the novelty for any given feature-vector/reconstructed-vector pairs
+max_train_epochs: int
+    Maximum number of training epochs (in case avg loss is still not at novelty thresh)
+
+<a name="base_brain.BaseBrain.add_grains"></a>
+#### add\_grains
+
+```python
+ | add_grains(grains: List[Image.Image])
+```
+
+Add new grains to memory
+
+Params:
+grains: List[Image.Image]
+List of new grains
+
+**Returns**:
+
+  List of novelty for new grains
+
+<a name="base_brain.BaseBrain.evaluate_novelty"></a>
+#### evaluate\_novelty
+
+```python
+ | evaluate_novelty(grains: List[Image.Image])
+```
+
+Evaluate novelty of a list of grains
+
+Params:
+grains: List[Image.Image]
+List of new grains
+
+**Returns**:
+
+  List of novelty for new grains
+
+<a name="base_brain.BaseBrain.learn_grains"></a>
+#### learn\_grains
+
+```python
+ | learn_grains()
+```
+
+Train the AE to learn new features from memory
 
 <a name="engine"></a>
 # engine
@@ -538,14 +665,31 @@ This performs a simple step for the agent, moving it from one position to the ne
 <a name="testing"></a>
 # testing
 
-<a name="novelty"></a>
-# novelty
+<a name="priority_based_memory"></a>
+# priority\_based\_memory
 
-The novelty module creates functions to evaluate the novelty (loss) which
-are used in brain. The nevelty functions operate on the results of autoencoder
-novelty func. 1: l1_norm loss
-novelty func. 2: l2_norm loss
-novelty func. 3:
+<a name="priority_based_memory.PriorityBasedMemory"></a>
+## PriorityBasedMemory Objects
+
+```python
+class PriorityBasedMemory(BaseMemory)
+```
+
+Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
+Low novelty corresponds to higher priority (also makes it easier to remove the experience).
+
+<a name="priority_based_memory.PriorityBasedMemory.push"></a>
+#### push
+
+```python
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add. If full, experiences that are less novel are removed (forgotten).
 
 <a name="brain"></a>
 # brain
@@ -561,53 +705,57 @@ class Brain()
 #### \_\_init\_\_
 
 ```python
- | __init__(nov_thresh: float, novelty_loss_type: str, max_train_epochs: int = 100)
+ | __init__(memory: BaseMemory, img_size: Tuple, nov_thresh: float, novelty_loss_type: str, train_epochs_per_iter: int = 1)
 ```
 
 Initializes the Brain by creating CNN and AE
 
-Params
-------
-nov_thresh : float
-    The novelty cutoff used in training
-novelty_function: Callable
-    The callback that will be used to determine the novelty for any given feature-vector/reconstructed-vector pairs
-max_train_epochs: int
-    Maximum number of training epochs (in case avg loss is still not at novelty thresh)
+**Arguments**:
+
+- `memory` - BaseMemory
+  A memory object that implements BaseMemory  (such as PriorityBasedMemory)
+- `img_size` - Tuple
+  The image size of each grain from the agent's field of view
+  nov_thresh : float
+  The novelty cutoff used in training
+- `novelty_loss_type` - str
+  A string indicating which novelty function to use (MSE or MAE)
+- `train_epochs_per_iter` - int
+  Number of epochs to train for in a single training session
 
 <a name="brain.Brain.add_grains"></a>
 #### add\_grains
 
 ```python
- | add_grains(grains: List[Image.Image])
+ | add_grains(grains: List[List[Image.Image]])
 ```
 
 Add new grains to memory
 
 Params:
-grains: List[Image.Image]
-List of new grains
+grains: List[List[Image.Image]]
+2D List of new grains
 
 **Returns**:
 
-  List of novelty for new grains
+  2D List of novelty for new grains
 
 <a name="brain.Brain.evaluate_novelty"></a>
 #### evaluate\_novelty
 
 ```python
- | evaluate_novelty(grains: List[Image.Image])
+ | evaluate_novelty(grains: List[List[Image.Image]])
 ```
 
 Evaluate novelty of a list of grains
 
 Params:
-grains: List[Image.Image]
-List of new grains
+grains: List[List[Image.Image]]
+2D List of new grains
 
 **Returns**:
 
-  List of novelty for new grains
+  2D List of novelty for new grains
 
 <a name="brain.Brain.learn_grains"></a>
 #### learn\_grains
@@ -616,7 +764,11 @@ List of new grains
  | learn_grains()
 ```
 
-Train the AE to learn new features from memory
+Train the network to learn new features from memory
+
+**Returns**:
+
+  The current average loss from the last training epoch
 
 <a name="map"></a>
 # map

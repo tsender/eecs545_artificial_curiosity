@@ -1,135 +1,88 @@
 from PIL import Image
 from pathlib import Path
-import map_helpers as mh
+from IPython.display import Image as show
+from typing import List, Tuple
 
 class Map:
-	"""
-	Map class that creates instances of the terrain map that the model will work on
+    def __init__(self, filepath: str, fov: int, sqrtGrains: int):
+        self.fov = fov
+        self.sqrtGrains = sqrtGrains
 
-	Methods
+        self.img = Image.open(Path(filepath))
+        # Convert the image to greyscale
+        self.img = self.img.convert('L')
 
-	`__init__(filepath: str, fov: int, sqrtGrains: int` 
-		initialize an instance of the given map and store fov and sqrtGrains
+    def _in_map(self, position: Tuple[int]):
+        valid_x = (position[0] < self.img.width and position[0] >= 0)
+        valid_y = (position[1] < self.img.height and position[1] >= 0)
 
-	`get_fov(position: tuple)` 
-		returns a list of grains (sub-images) with radius fov given the position of the model on the map
+        return valid_x and valid_y
 
-	`clean_directions(coordinates: list)` 
-		return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
+    # Finds coordinats from the given point in a way that assumes that the rover's position
+    # is in the space between four pixels at the center of the grid, instead of offset one
+    # to the left and one down
+    # These are measured using an inverted y axis
+    def _down(self, y_pos: int, distance: int):
+        return y_pos - distance
 
-	"""
-	
-	def __init__(self, filepath: str, fov: int, sqrtGrains: int):
-		"""
-		Parameters:
+    def _up(self, y_pos: int, distance: int):
+        return y_pos + distance - 1
 
-			filepath: the stringpath containing the input terrain map -- can be a jpg or png
-			fov: an int radius of the field-of-view
-			sqrtGrains: The square root of the number of grains (sub-squares) in the fov -- an int
+    def _left(self, y_pos: int, distance: int):
+        return y_pos - distance + 1
 
+    def _right(self, y_pos: int, distance: int):
+        return y_pos + distance
 
-		Returns:
+    # Measured from the point of view of the inverted y
+    # PIL refers to these in terms of the non-inverted y
+    def full_view(self, position: Tuple[int]):
+        lb_coordinates = (self._left(
+            position[0], self.fov), self._down(position[1], self.fov))
+        rt_coordinates = (self._right(
+            position[0], self.fov+1), self._up(position[1], self.fov+1))
+        # Need to add +1 because PIL doesn't take coordinates, it takes the length to travel
+        # along each path
 
-			A Map object with:
+        return self.img.crop((*(lb_coordinates), *(rt_coordinates)))
 
-				The image from filepath (in greyscale),
-				fov,
-				sqrtGrains
+    def get_fov(self, position: Tuple[int]):
+        combined = self.full_view(position)
 
-		"""
+        # Visual top left
+        vtl = combined.crop((0, 0, self.fov, self.fov))
+        # Visual bottom left
+        vbl = combined.crop((0, self.fov, self.fov, 2*self.fov))
+        # Visual top right
+        vtr = combined.crop((self.fov, 0, 2*self.fov, self.fov))
+        # Visual bottom right
+        vbr = combined.crop((self.fov, self.fov, 2*self.fov, 2*self.fov))
 
-		self.fov = fov
-		self.sqrtGrains = sqrtGrains
+        return [
+            [vtl, vtr],
+            [vbl, vbr]
+        ]
 
-		
-		img = Image.open(Path(filepath))
-		# grey_scale = mh.is_grey_scale(img) # check if the image is greyscale
+    def clean_directions(self, c: List[List[Tuple[int]]]):
+        # Simpler to just do it this way since we only have four positions
+        # Checks to see if the FOV would be off the screen if it took a step in that direction
+        
+        output = [ [None, None], [None, None] ]
 
-		# if not grey_scale:
-		img = img.convert('L') # convert image to greyscale
+        # Visual top left, which is bottom left in PIL
+        output[0][0] = self._in_map(
+            (self._left(c[0][0][0], self.fov), self._down(c[0][0][1], self.fov)))
 
-		self.img = img
+        # Visual top right, which is bottom right in PIL
+        output[0][1] = self._in_map(
+            (self._right(c[0][1][0], self.fov), self._down(c[0][1][1], self.fov)))
 
+        # Visual bottom left, which is top left in PIL
+        output[1][0] = self._in_map(
+            (self._left(c[1][0][0], self.fov), self._up(c[1][0][1], self.fov)))
 
+        # Visual bottom right, which is top right in PIL
+        output[1][1] = self._in_map(
+            (self._right(c[1][1][0], self.fov), self._up(c[1][1][1], self.fov)))
 
-	def get_fov(self, position: tuple):
-		"""
-		Parameter:
-			position: Position of the rover on the map -- a tuple expected in (column, row)
-
-		Returns:
-
-			A list of the grains that have been split from the img with radius fov, i.e.
-			the legal squares that the rover can go to in fov steps
-
-		"""
-
-
-		# Making sure the position is valid, i.e. at least fov pixels away from the edges
-		is_valid = mh.is_valid_position(self.img, self.fov, position)
-
-		if is_valid:
-
-			width, height = self.img.size
-		
-			rover_position = mh.find_sitting_pixels(position, width, height)
-			
-
-			############ Crop the images to get grains of radius fov ##################
-
-			## Get the (left, upper, right, lower) coordinates for each square the rover sits on
-
-			all_coords = mh.find_coordinates(rover_position, self.fov, width, height)
-
-			
-			## Crop and return grains ##
-
-			grains = []
-			for coord in all_coords:
-				if coord != None:
-
-					if coord[0] != coord[2] and coord[1] != coord[3]:
-						# For ex. (0, 534, 300, 534) --> the 534th row of the image b/w columns 0 and 300
-						# Crop doesn't work for row/column "vectors"
-						# It should never not go in here based on how clean_directions is implemented, but just in case
-						grains.append(self.img.crop(coord))
-
-            
-			# for i in grains:
-			# 	i.show()
-
-			
-			return grains
-
-
-		else:
-
-			raise ValueError("Invalid position. Should be atleast %d pixels away from image edge." % self.fov)
-
-
-
-
-	def clean_directions(self, coordinates: list):
-		"""
-		Parameter: 
-			coordinates: A list of tuples that represent coordinates
-
-		Returns: 
-			A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
-		"""
-
-		width, height = self.img.size
-		valid_directions = []
-
-		for pixel in coordinates:
-			is_valid = mh.is_valid_position(self.img, self.fov, pixel)
-
-			if is_valid:
-				valid_directions.append(True)
-			else:
-				# Coordinate is closer than [fov] pixels to the edge #
-				valid_directions.append(False)
-
-
-		return valid_directions
-  
+        return output

@@ -57,14 +57,14 @@ class Memory:
 
     def memList(self) -> List[Experience]:
         """
-        ### Parameters
+        Parameters
 
-        > None
+        None
 
-        ### Returns
+        Returns
 
-        > List[Experience]
-        >    > A list of Experience objects
+        List[Experience]
+            A list of Experience objects
         """
         return self._heap
 

@@ -102,11 +102,11 @@ class Brain:
         rgb_grain = tf.image.resize(rgb_grain, (self._image_width, self._image_width)) # Resize to CNN base input size
         return rgb_grain
 
-    def add_grains(self, grains: List[Image.Image]):
+    def add_grains(self, grains: List[List[Image.Image]]):
         """Add new grains to memory
 
         Params:
-            grains: List[Image.Image]
+            grains: List[List[Image.Image]]
                 List of new grains
 
         Returns:
@@ -114,25 +114,32 @@ class Brain:
         """
 
         print("Adding new grains to memory...")
-        assert len(grains) == 4 # Currently, we only allow 4 grains
+        assert len(grains) == 2 # Currently, we only allow 4 grains
+        assert len(grains[0]) == 2 # Currently, we only allow 4 grains
         nov_list = []
 
-        for g in grains:
-            gtf = self._grain_to_tensor(g)
-            gtf = tf.reshape(gtf, (1, gtf.shape[0], gtf.shape[1], gtf.shape[2])) # Reshape to (1,H,W,C)
-            fvec = self._CNN(gtf)
-            pred_fvec = self._AE(fvec)
-            nov = self.novelty_function(fvec, pred_fvec).numpy()
-            nov_list.append(nov)
-            self.memory.push(Experience(nov, fvec.numpy().flatten(), g)) # Add to memory, fvec MUST be flattened
+        for row in grains:
+            temp_list = []
+            for g in row:
+                gtf = self._grain_to_tensor(g)
+                # Reshape to (1,H,W,C)
+                gtf = tf.reshape(
+                    gtf, (1, gtf.shape[0], gtf.shape[1], gtf.shape[2]))
+                fvec = self._CNN(gtf)
+                pred_fvec = self._AE(fvec)
+                nov = self.novelty_function(fvec, pred_fvec).numpy()
+                temp_list.append(nov)
+                # Add to memory, fvec MUST be flattened
+                self.memory.push(Experience(nov, fvec.numpy().flatten(), g))
+            nov_list.append(temp_list)
             
         return nov_list
 
-    def evaluate_novelty(self, grains: List[Image.Image]):
+    def evaluate_novelty(self, grains: List[List[Image.Image]]):
         """Evaluate novelty of a list of grains
 
         Params:
-            grains: List[Image.Image]
+            grains: List[List[Image.Image]]
                 List of new grains
 
         Returns:
@@ -143,13 +150,16 @@ class Brain:
         assert grains != [] and grains is not None
         nov_list = []
 
-        for g in grains:
-            gtf = self._grain_to_tensor(g)
-            gtf = tf.reshape(gtf, (1, gtf.shape[0], gtf.shape[1], gtf.shape[2])) # Reshape to (1,H,W,C)
-            fvec = self._CNN(gtf)
-            pred_fvec = self._AE(fvec)
-            nov = self.novelty_function(fvec, pred_fvec).numpy()
-            nov_list.append(nov)
+        for row in grains:
+            temp_list = []
+            for g in row:
+                gtf = self._grain_to_tensor(g)
+                gtf = tf.reshape(gtf, (1, gtf.shape[0], gtf.shape[1], gtf.shape[2])) # Reshape to (1,H,W,C)
+                fvec = self._CNN(gtf)
+                pred_fvec = self._AE(fvec)
+                nov = self.novelty_function(fvec, pred_fvec).numpy()
+                temp_list.append(nov)
+            nov_list.append(temp_list)
             
         return nov_list
 
@@ -204,8 +214,14 @@ class Brain:
 if __name__ == "__main__":
     im = Image.open('data/x.jpg')
     brain = Brain(0.25, 'MSE') # 0.25 seems to be the smallest reasonable value for novelty thresh
-    grain_nov = brain.add_grains([im, im, im, im])
+    grain_nov = brain.add_grains([
+        [im, im],
+        [im, im]
+    ])
     print("Grain novelty (before): ", grain_nov)
     brain.learn_grains()
-    grain_nov = brain.evaluate_novelty([im, im, im, im])
+    grain_nov = brain.evaluate_novelty([
+        [im, im],
+        [im, im]
+    ])
     print("Grain novelty (after): ", grain_nov)

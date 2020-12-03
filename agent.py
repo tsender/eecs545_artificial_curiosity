@@ -1,5 +1,8 @@
+# Need this because the name map is taken by the actual map
+lst_map = map
+
 from artificial_curiosity_types import Artificial_Curiosity_Types as act
-from typing import Tuple
+from typing import Tuple, List
 import abc
 from brain import Brain
 from map import Map
@@ -21,7 +24,7 @@ class Motivation(metaclass=abc.ABCMeta):
         """This will get the agents next position based on the current position passed to it"""
         pass
 
-    def _generate_positions(self, position):
+    def _generate_positions(self, position: Tuple[int]):
         """This generates the possible positions based on the current position. This will be filtered by other methods later on"""
 
         # TODO: These need to be confirmed by Aravind because I'm not sure that I'm handing the directions properly
@@ -36,8 +39,10 @@ class Motivation(metaclass=abc.ABCMeta):
         # Right bottom
         rb = (position[0]+RATE, position[1]+RATE)
 
-        # I believe that this is the order that Aravind was passing them in
-        return [lb, lt, rb, rt]
+        return [
+            [lt, rt],
+            [lb, rb]
+        ]
 
 
 class Curiosity(Motivation):
@@ -57,7 +62,7 @@ class Curiosity(Motivation):
         # Finds the novelty of those images
         novelty = self._brain.evaluate_novelty(grains)
 
-        print(novelty) # TODO: remove, for debugging
+        # print(novelty) # TODO: remove, for debugging
 
         # Finds the potential new positions from the current position
         new_positions = self._generate_positions(position)
@@ -65,31 +70,31 @@ class Curiosity(Motivation):
         # Creates a list of booleans to act as a filter for the list of positions
         position_filter = self._map.clean_directions(new_positions)
         # Finds the index with the greatest novelty that is also a valid position
-        index = self._max_pos(novelty, position_filter)
+        x,y = self._max_pos(novelty, position_filter)
         # Add the grains to memory
         self._brain.add_grains(grains)
         # Train on the grains in memory
         self._brain.learn_grains()
         # Return the chosen position
-        return new_positions[index]
+        return new_positions[y][x]
 
-    def _max_pos(self, lst=[], filter=[]):
+    def _max_pos(self, lst:List[List[int]]=[], filter:List[List[bool]]=[]):
         """Finds the position with the maximum novelty given a filter list (which labels positions as valid or invalid)"""
 
         # Make sure that the lists are not empty
         assert lst is not [] and filter is not []
         # Initializes the positon to 0.5 so we can catch errors.We can't use -1 to catch errors because -1 will just be the last index
         pos = 0.5
-        max = min(lst)-1
+        max = min(list(lst_map(min, lst)))-1
 
         # TODO: There might be some weird edge cases here because we could have 0 available positions
         #  This would not be observed in the real world though
-        for i in range(len(lst)):
-            # If it's a valid position and the novelty at that position is greater than the current max novelty
-            if filter[i] and lst[i] > max:
-                # Update the position
-                max = lst[i]
-                pos = i
+        for y in range(len(lst)):
+            for x in range(len(lst[y])):
+                if filter[y][x] and lst[y][x] > max:
+                    # Update the position
+                    max = lst[y][x]
+                    pos = (x,y)
 
         # Return the position that has the highest novelty
         return pos
@@ -110,13 +115,18 @@ class Random(Motivation):
         new_positions = self._generate_positions(position)
         # Creates a filter for the ones that are in the map or out of it
         position_filter = self._map.clean_directions(new_positions)
+
+        #  In this case it's easier to flatten them and chose than to work with a 2d array
+        flattened_positions = (new_positions[0] + new_positions[1])
+        flattened_filter = (position_filter[0] + position_filter[1])
+
         # Chooses a random index from the position list random position that is allowed by the filter
         # TODO: We can probably modify this so that the last two lines are combined, selecting a position itself
         # instead of an index for a position and then getting the position at the index
-        index = random.choice([i for i in range(len(position_filter)) if position_filter[i]])
+        index = random.choice([i for i in range(len(flattened_filter)) if flattened_filter[i]])
 
         # Return that 
-        return new_positions[index]
+        return flattened_positions[index]
 
     def __str__(self):
         return "Random"
@@ -127,7 +137,7 @@ class Linear(Motivation):
         # Saves the map
         self._map = map
         # Chooses a random direction to move in
-        self.direction = random.randint(0,3)
+        self.direction = (random.randint(0, 1), random.randint(0, 1))
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -136,9 +146,14 @@ class Linear(Motivation):
         new_positions = self._generate_positions(position)
         # Creates a filter for the ones that are in the map or out of it
         position_filter = self._map.clean_directions(new_positions)
+
+        n = True
         
         # Cycles through all of the options until a valid position is found
-        while not position_filter[self.direction]:
+        while not position_filter[self.direction[1]][self.direction[0]]:
+            if n:
+                print(position)
+                n=  False
             # I'll explain on one and the rest should be self explanatory
 
             # Assume we're going diagonally in a specific direction and get stopped by something.
@@ -159,17 +174,18 @@ class Linear(Motivation):
             # algorithm sort it out, since if the random direction is wrong, it will perform the checks again. This
             # could theoretically run in an infinite loop, but this is unlikely and modern CPUs make the time
             # difference trivial
-            if self.direction == 0:
-                self.direction = random.choice((1, 2))
-            elif self.direction == 2:
-                self.direction = random.choice((0, 3))
-            elif self.direction == 3:
-                self.direction = random.choice((1,2))
+
+            if(self.direction[0] == 0 and self.direction[1] == 0):
+                self.direction = random.choice(((0,1), (1,0)))
+            elif(self.direction[0] == 0 and self.direction[1] == 1):
+                self.direction = random.choice(((0,0), (1,1)))
+            elif(self.direction[0] == 1 and self.direction[1] == 0):
+                self.direction = random.choice(((0,0), (1,1)))
             else:
-                self.direction = random.choice((0, 3))
+                self.direction = random.choice(((0, 1), (1, 0)))
 
         # Return the chosen position
-        return new_positions[self.direction]
+        return new_positions[self.direction[0]][self.direction[1]]
     
     def __str__(self):
         return "Linear"

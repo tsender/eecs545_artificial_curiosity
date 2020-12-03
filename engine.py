@@ -3,6 +3,7 @@ from map import Map
 from agent import Agent, Curiosity, Linear, Random, Motivation
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import csv
 
 # TODO: Might want to make more efficient so that graphing doesn't take so long
@@ -61,7 +62,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
 
         # Annotate the chart
         ax.set_title("Combined Agent Paths")
-        # Place the legent outside of the chart since we never know where the
+        # Place the legend outside of the chart since we never know where the
         # agents are going to go
         ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title='Legend')
         # Fix the alignment of the image on export
@@ -92,6 +93,11 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
             # Plot the agents. The color is arbitrary but I thought it stood out well.
             # These plots have transparencies as well to stay consistent with the others
             ax.plot(x, y, alpha=0.5, c="orange")
+
+            for x,y in agent.history:
+                rect = patches.Rectangle((x-32, y-32), 64, 64, linewidth=1, edgecolor='r', facecolor='none', alpha=0.1)
+                ax.add_patch(rect)
+
             # Name the plot after the agent
             ax.set_title(agent)
 
@@ -196,24 +202,27 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
     ------
     None
     """
-    for agent in agent_lst:
-        # read agent history
-        agent_histroy = agent.history
 
+    # Iterates over all of the agents
+    for agent in agent_lst:
         if save:
             fields = ['x', 'y']
+            # Change the Agent's name into a valid filename
             filename = str(agent).replace(" ", "_").replace(
                 "(", "").replace(")", "").replace(",", "_") + '_path_record'
 
+            # Save the coordinates to a file
             with open(dirname + '/' + filename + '.csv', 'w', newline='') as f:
                 wr = csv.writer(f)
                 wr.writerow(fields)
                 wr.writerows(agent.history)
 
 
-def load_data(path: str):
+def load_agent_data(path: str):
     """
-    Loads information from a given file
+    Loads information from a given file. This will not be used as part of the engine.
+    However, I thought it would be useful to include here so that if we make changes to
+    the serialization, we have the data loding close by and can edit it easily
 
     Params
     ------
@@ -251,5 +260,5 @@ def load_data(path: str):
 if __name__ == "__main__":
     m = Map('data/mars.png', 64, 2)
 
-    run_experiment([Linear, Linear, Linear], [(64, 64), (2000, 1000), (250, 200)],
-                   m, 100, saveLocation=True, saveGraph=True, dirname="./output_dir")
+    run_experiment([Random, Linear], [(2000,1000), (2000, 1000)],
+                   m, 1000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")

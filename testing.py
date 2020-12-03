@@ -1,9 +1,11 @@
-from experience import Experience
-from memory import Memory
-from artificial_curiosity_types import Artificial_Curiosity_Types as act
-from map import Map
 from PIL import Image
 import unittest
+
+from experience import Experience
+from priority_based_memory import PriorityBasedMemory
+from list_based_memory import ListBasedMemory
+from artificial_curiosity_types import Artificial_Curiosity_Types as act
+from map import Map
 
 class ExperienceTest(unittest.TestCase):
     # Testing positive comparisons
@@ -29,16 +31,20 @@ class ExperienceTest(unittest.TestCase):
 
 
 class MemoryTest(unittest.TestCase):
-    def test_init(self):
-        m = Memory(5)
-        self.assertEqual(m.maxLength, 5)
-
-    def test_push(self):
-        m = Memory(5)
+    def test_priority_based_memory(self):
+        m = PriorityBasedMemory(5)
         for i in range(6):
             m.push(Experience(i, None))
 
-        for i in m.memList():
+        for i in m.as_list():
+            self.assertNotEqual(i.novelty, 0)
+
+    def test_list_based_memory(self):
+        m = ListBasedMemory(5)
+        for i in range(6):
+            m.push(Experience(i, None))
+
+        for i in m.as_list():
             self.assertNotEqual(i.novelty, 0)
 
 class MapTest(unittest.TestCase):

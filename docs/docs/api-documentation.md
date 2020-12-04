@@ -561,6 +561,98 @@ The aaverage pixelwise variation across all images, as a float
 <a name="map"></a>
 # map
 
+<a name="map.down"></a>
+#### down
+
+```python
+down(y_pos: int, distance: int)
+```
+
+Find the pixel a given distance from the virtual agent location
+
+Params
+------
+
+y_pos: int
+    An index along the y axis that will be used as the starting point
+
+distance: int
+    The distance we want to trayel along the y axis from that point.
+
+Returns
+-------
+
+An integer for the new location
+
+<a name="map.up"></a>
+#### up
+
+```python
+up(y_pos: int, distance: int)
+```
+
+Find the pixel a given distance from the virtual agent location
+
+Params
+------
+
+y_pos: int
+    An index along the y axis that will be used as the starting point
+
+distance: int
+    The distance we want to trayel along the y axis from that point.
+
+Returns
+-------
+
+An integer for the new location
+
+<a name="map.left"></a>
+#### left
+
+```python
+left(x_pos: int, distance: int)
+```
+
+Find the pixel a given distance from the virtual agent location
+
+Params
+------
+
+x_pos: int
+    An index along the x axis that will be used as the starting point
+
+distance: int
+    The distance we want to trayel along the x axis from that point.
+
+Returns
+-------
+
+An integer for the new location
+
+<a name="map.right"></a>
+#### right
+
+```python
+right(x_pos: int, distance: int)
+```
+
+Find the pixel a given distance from the virtual agent location
+
+Params
+------
+
+x_pos: int
+    An index along the x axis that will be used as the starting point
+
+distance: int
+    The distance we want to trayel along the x axis from that point.
+
+Returns
+-------
+
+An integer for the new location
+
 <a name="map.Map"></a>
 ## Map Objects
 

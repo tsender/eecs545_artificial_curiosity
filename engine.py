@@ -265,5 +265,5 @@ def load_agent_data(path: str):
 if __name__ == "__main__":
     m = Map('data/mars.png', 64, 2)
 
-    run_experiment([Random, Linear], [(2000,1000), (2000, 1000)],
-                   m, 1000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")
+    run_experiment([Random], [(2000, 1000)],
+                   m, 100000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")

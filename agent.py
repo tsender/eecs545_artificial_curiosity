@@ -8,9 +8,6 @@ from brain import Brain
 from map import Map
 import random
 
-# This is the number of pixels which the agent will move every step
-RATE = 16
-
 # TODO: I didn't add documentation for the methods at the top of each class because Ted mentioned that he was coming up
 # with a new method of moving and I didn't want to write them just to have them removed
 
@@ -31,13 +28,13 @@ class Motivation(metaclass=abc.ABCMeta):
         # It's a little confusing because the origin is in the top left because that's how PIL handles images
 
         # Left top
-        lt = (position[0]-RATE, position[1]-RATE)
+        lt = (position[0]-self.rate, position[1]-self.rate)
         # Left bottom
-        lb = (position[0]+RATE, position[1]-RATE)
+        lb = (position[0]-self.rate, position[1]+self.rate)
         # Right top
-        rt = (position[0]-RATE, position[1]+RATE)
+        rt = (position[0]+self.rate, position[1]-self.rate)
         # Right bottom
-        rb = (position[0]+RATE, position[1]+RATE)
+        rb = (position[0]+self.rate, position[1]+self.rate)
 
         return [
             [lt, rt],
@@ -47,12 +44,13 @@ class Motivation(metaclass=abc.ABCMeta):
 
 class Curiosity(Motivation):
     """This class extends Motivation and creates a curious motivation for an agent"""
-    def __init__(self, map: Map):
+    def __init__(self, map: Map, rate: int = 1):
         # Creates a brain for the agent with some parameters
         # TODO: These are not optimal, they have been set for testing purposes
         self._brain = Brain(nov_thresh=0.1, novelty_loss_type='mse')
         # This assigns a map to the agent, which is where they will get their directions from
         self._map = map
+        self.rate = rate
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -104,9 +102,11 @@ class Curiosity(Motivation):
 
 class Random(Motivation):
     """This class extends Motivation, and randomly selects a position based on what is available"""
-    def __init__(self, map: Map):
+
+    def __init__(self, map: Map, rate: int = 1):
         # Saves the given map
         self._map = map
+        self.rate = rate
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -133,11 +133,13 @@ class Random(Motivation):
 
 class Linear(Motivation):
     """This class extends Motivation, and is designed to move on a linear path"""
-    def __init__(self, map: Map):
+
+    def __init__(self, map: Map, rate: int = 1):
         # Saves the map
         self._map = map
         # Chooses a random direction to move in
         self.direction = (random.randint(0, 1), random.randint(0, 1))
+        self.rate = rate
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""

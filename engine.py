@@ -271,4 +271,4 @@ if __name__ == "__main__":
     brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
     motivations = [Random(map=map), Linear(map=map)] # Curiosity(map=map, brain=brain)]
     positions = [(2000,1000), (2000, 1000)] # (2000, 1000)]
-    run_experiment(motivations, positions, map, 1000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")
+    run_experiment(motivations, positions, map, 100000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")

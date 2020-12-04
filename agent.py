@@ -8,8 +8,6 @@ from brain import Brain
 from map import Map
 import random
 
-# This is the number of pixels which the agent will move every step
-RATE = 16
 
 # Abstract Class
 class Motivation(metaclass=abc.ABCMeta):
@@ -27,13 +25,13 @@ class Motivation(metaclass=abc.ABCMeta):
         # It's a little confusing because the origin is in the top left because that's how PIL handles images
 
         # Left top
-        lt = (position[0]-RATE, position[1]-RATE)
+        lt = (position[0]-self.rate, position[1]-self.rate)
         # Left bottom
-        lb = (position[0]+RATE, position[1]-RATE)
+        lb = (position[0]-self.rate, position[1]+self.rate)
         # Right top
-        rt = (position[0]-RATE, position[1]+RATE)
+        rt = (position[0]+self.rate, position[1]-self.rate)
         # Right bottom
-        rb = (position[0]+RATE, position[1]+RATE)
+        rb = (position[0]+self.rate, position[1]+self.rate)
 
         return [
             [lt, rt],
@@ -43,12 +41,14 @@ class Motivation(metaclass=abc.ABCMeta):
 
 class Curiosity(Motivation):
     """This class extends Motivation and creates a curious motivation for an agent"""
-    def __init__(self, map: Map, brain: Brain):
+
+    def __init__(self, map: Map, brain: Brain, rate: int = 1):
         # This assigns a map to the agent, which is where they will get their directions from
         self._map = map
         # Creates a brain for the agent with some parameters
         # TODO: These are not optimal, they have been set for testing purposes
         self._brain = brain
+        self.rate = rate
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -57,8 +57,6 @@ class Curiosity(Motivation):
         grains = self._map.get_fov(position)
         # Finds the novelty of those images
         novelty = self._brain.evaluate_novelty(grains)
-
-        # print(novelty) # TODO: remove, for debugging
 
         # Finds the potential new positions from the current position
         new_positions = self._generate_positions(position)
@@ -100,9 +98,11 @@ class Curiosity(Motivation):
 
 class Random(Motivation):
     """This class extends Motivation, and randomly selects a position based on what is available"""
-    def __init__(self, map: Map):
+
+    def __init__(self, map: Map, rate: int = 1):
         # Saves the given map
         self._map = map
+        self.rate = rate
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -133,11 +133,13 @@ class Random(Motivation):
 
 class Linear(Motivation):
     """This class extends Motivation, and is designed to move on a linear path"""
-    def __init__(self, map: Map):
+
+    def __init__(self, map: Map, rate: int = 1):
         # Saves the map
         self._map = map
         # Chooses a random direction to move in
         self.direction = (random.randint(0, 1), random.randint(0, 1))
+        self.rate = rate
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -146,14 +148,9 @@ class Linear(Motivation):
         new_positions = self._generate_positions(position)
         # Creates a filter for the ones that are in the map or out of it
         position_filter = self._map.clean_directions(new_positions)
-
-        n = True
         
         # Cycles through all of the options until a valid position is found
         while not position_filter[self.direction[1]][self.direction[0]]:
-            if n:
-                # print(position)
-                n=  False
             # I'll explain on one and the rest should be self explanatory
 
             # Assume we're going diagonally in a specific direction and get stopped by something.
@@ -173,7 +170,7 @@ class Linear(Motivation):
             # this logic with if statements, but it is cleaner to simply choose a random direction and have the
             # algorithm sort it out, since if the random direction is wrong, it will perform the checks again. This
             # could theoretically run in an infinite loop, but this is unlikely and modern CPUs make the time
-            # difference trivial
+            # difference trivial            
 
             if(self.direction[0] == 0 and self.direction[1] == 0):
                 self.direction = random.choice(((0,1), (1,0)))
@@ -185,7 +182,7 @@ class Linear(Motivation):
                 self.direction = random.choice(((0, 1), (1, 0)))
 
         # Return the chosen position
-        return new_positions[self.direction[0]][self.direction[1]]
+        return new_positions[self.direction[1]][self.direction[0]]
     
     def __str__(self):
         return "Linear"

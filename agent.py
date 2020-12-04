@@ -116,6 +116,10 @@ class Random(Motivation):
         flattened_positions = (new_positions[0] + new_positions[1])
         flattened_filter = (position_filter[0] + position_filter[1])
 
+        if True not in flattened_filter:
+            print("Random Agent: At pos ", position, " has no valid moves")
+            print("No valid moves ", self._generate_positions(position))
+
         # Chooses a random index from the position list random position that is allowed by the filter
         # TODO: We can probably modify this so that the last two lines are combined, selecting a position itself
         # instead of an index for a position and then getting the position at the index

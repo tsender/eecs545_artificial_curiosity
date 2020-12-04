@@ -170,7 +170,7 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
                 agent.step()
             except Exception as e:
                 # TODO: Should probably replace this with a stack trace
-                print('problem at', i, "with agent:", agent)
+                print('Problem at step ', i, " with agent:", agent)
                 print(e)
                 return
         
@@ -269,6 +269,6 @@ if __name__ == "__main__":
     map = Map('data/mars.png', fov, 2)
 
     brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
-    motivations = [Random(map=map), Linear(map=map), Curiosity(map=map, brain=brain)]
-    positions = [(2000,1000), (2000, 1000), (2000, 1000)]
+    motivations = [Random(map=map), Linear(map=map)] # Curiosity(map=map, brain=brain)]
+    positions = [(2000,1000), (2000, 1000)] # (2000, 1000)]
     run_experiment(motivations, positions, map, 1000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")

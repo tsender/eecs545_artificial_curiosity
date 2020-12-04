@@ -292,83 +292,6 @@ Returns
 _______
 string
 
-<a name="map_helpers"></a>
-# map\_helpers
-
-File that has helper functions for the Map class
-
-1. is_grey_scale(img) : Checks whether the given image is greyscale or color
-2. is_valid_position(img, fov, position): Checks whether the given position is valid or not
-3. find_sitting_pixels(position, width, height): Finds the pixel that the rover is "sitting" on
-4. find_coordinates(rover_position, fov, width, height): Finds the cropping coordinates that create grains
-
-<a name="map_helpers.is_grey_scale"></a>
-#### is\_grey\_scale
-
-```python
-is_grey_scale(img)
-```
-
-Parameter:
-img: the PIL image object
-
-**Returns**:
-
-  A boolean indicating whether img is greyscale or not
-
-<a name="map_helpers.is_valid_position"></a>
-#### is\_valid\_position
-
-```python
-is_valid_position(img, fov, position)
-```
-
-**Arguments**:
-
-  The image, fov and position passed to get_fov in map.py
-  
-
-**Returns**:
-
-  A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
-
-<a name="map_helpers.find_sitting_pixels"></a>
-#### find\_sitting\_pixels
-
-```python
-find_sitting_pixels(position, width, height)
-```
-
-**Arguments**:
-
-- `position` - the position of the rover
-- `width` - width (number of columns) of the image
-- `height` - height (number of rows) of the image
-  
-
-**Returns**:
-
-  A dictionary that represents the 4 pixels that the rover is "sitting" on
-
-<a name="map_helpers.find_coordinates"></a>
-#### find\_coordinates
-
-```python
-find_coordinates(rover_position, fov, width, height)
-```
-
-**Arguments**:
-
-- `rover_position` - A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels
-- `fov` - the fov
-- `width` - the width of the image
-- `height` - the height of the image
-  
-
-**Returns**:
-
-  A list of the cropping coordinates for each of the (max) four grains
-
 <a name="agent"></a>
 # agent
 
@@ -564,6 +487,77 @@ THe directory name where the csv file will be saved
   ------
   None
 
+<a name="engine.load_agent_data"></a>
+#### load\_agent\_data
+
+```python
+load_agent_data(path: str)
+```
+
+Loads information from a given file. This will not be used as part of the engine.
+However, I thought it would be useful to include here so that if we make changes to
+the serialization, we have the data loding close by and can edit it easily
+
+Params
+------
+
+path: str
+    The path to the file
+
+Returns
+-------
+
+List[Tuple[int]]
+    Returns a list of x and y coordinates
+
+<a name="evaluate"></a>
+# evaluate
+
+<a name="evaluate.load_from_map"></a>
+#### load\_from\_map
+
+```python
+load_from_map(map: Map, positions: List[Tuple[int]])
+```
+
+Grabs images at a list of coordinates, converts them to a numpy array, and returns them
+
+Params
+------
+
+map: Map
+    The map that you want to get the images from
+
+positions: List[Tuple[int]]
+    A list of all of the points that will be sampled and turned into an numpy array
+
+Returns
+-------
+
+A numpy array of dimension (<number_of_images>, <height_of_images>, <width_of_images>
+
+<a name="evaluate.avg_pixelwise_var"></a>
+#### avg\_pixelwise\_var
+
+```python
+avg_pixelwise_var(images_seen: np.int16)
+```
+
+Computes the variance for every pixel p across all images, resulting in a matrix holding
+the variance for eack pixel p, then calculates the average of that variance across all
+pixels. This allows us to compensate for different fov sizes
+
+Params
+------
+
+images_seen
+    A numpy matrix holding numpy versions of all of our images
+
+Returns
+-------
+
+The aaverage pixelwise variation across all images, as a float
+
 <a name="map"></a>
 # map
 
@@ -574,73 +568,104 @@ THe directory name where the csv file will be saved
 class Map()
 ```
 
-Map class that creates instances of the terrain map that the model will work on
+This class will hold some basic information about the environment our agent is training in,
+which allows us to train multiple agents in the same environment. It's main purpose is to
+act as a wrapper for the image we will be using as our domain
 
-Methods
-
-`__init__(filepath: str, fov: int, sqrtGrains: int` 
-	initialize an instance of the given map and store fov and sqrtGrains
-
-`get_fov(position: tuple)` 
-	returns a list of grains (sub-images) with radius fov given the position of the model on the map
-
-`clean_directions(coordinates: list)` 
-	return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
+It is important to note that the map uses an inverted y axis due to the graphics backend
 
 <a name="map.Map.__init__"></a>
 #### \_\_init\_\_
 
 ```python
- | __init__(filepath: str, fov: int, sqrtGrains: int)
+ | __init__(filepath: str, fov: int, sqrtGrains: int, greyscale: bool = True)
 ```
 
-**Arguments**:
+Params
+------
+filepath: str
+    The path to the image that we want to use as our domain. It will be loaded automatically
 
-  
-- `filepath` - the stringpath containing the input terrain map -- can be a jpg or png
-- `fov` - an int radius of the field-of-view
-- `sqrtGrains` - The square root of the number of grains (sub-squares) in the fov -- an int
-  
-  
+fov: int
+    The radius of our agent's field of view (FOV). This is how far they can see, as well as
+    how far they'll stay away from the walls (because we don't want them to be able to go
+    off the map).
 
-**Returns**:
+sqrtGrains: int
+    The square root of the number of grains, or sub-images, that we want the agent to use.
+    This number can also be thought of as the number of grains that are along one side of
+    the square that makes ip the FOV (hence thew square root).
 
-  
-  A Map object with:
-  
-  The image from filepath (in greyscale),
-  fov,
-  sqrtGrains
+    The number of grains is effectively the number of sub-patches that we create for the
+    model to use for navigation. Right now, we have informally agreed to limit them
+    to two for simplicity. This will not be the case in the future
+
+greyscale: bool
+    Whether the image should be converted to greyscale
+
+<a name="map.Map.full_view"></a>
+#### full\_view
+
+```python
+ | full_view(position: Tuple[int])
+```
+
+This fuction will get the image that covers the entirety of
+the agent's FOV, This is so that we can see everything 
+that the agent has seen, as well as use this as an intermediate
+function later when we're getting individual grains
 
 <a name="map.Map.get_fov"></a>
 #### get\_fov
 
 ```python
- | get_fov(position: tuple)
+ | get_fov(position: Tuple[int])
 ```
 
-Parameter:
-position: Position of the rover on the map -- a tuple expected in (column, row)
+Gets the grains for the rover at the given position and returns them
 
-**Returns**:
+Params
+------
 
-  
-  A list of the grains that have been split from the img with radius fov, i.e.
-  the legal squares that the rover can go to in fov steps
+position: Tuple[int]
+    The position that the rover is sitting at. This will be adgusted so that the
+    rover is virtually in between four points.
+
+Returns
+-------
+
+List[List[Image.Image]]
+    Returns the agent's field of view as a 2d array of images in the format
+    <visual_top_left>,    <visual_top_right>
+    <visual_bottom_left>, <visual_buttom_right>
+
+    Visual refers to the fact that <visual_top_left> looks like it's in the
+    top left, but according to PIL it's actually in the bottom left
 
 <a name="map.Map.clean_directions"></a>
 #### clean\_directions
 
 ```python
- | clean_directions(coordinates: list)
+ | clean_directions(c: List[List[Tuple[int]]])
 ```
 
-Parameter:
-coordinates: A list of tuples that represent coordinates
+This function makes sure that the agent wouldn't be able to see out
+of the map if it moved to these positions. This is to prevent the
+agent from running off the map.
 
-**Returns**:
+For right now we assume that there are 4 grains being passed. Because
+we're only checking 4 positions, it's easier and more efficient to
+just unroll the lop and write them all out individually
 
-  A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
+Params
+------
+c: List[List[int]]
+    A 2d list of positions that will be checked against the map.
+
+Returns
+-------
+List[List[bool]]
+    A 2d list of booleans that tell whether a given direction is valid
 
 <a name="networks"></a>
 # networks
@@ -706,7 +731,7 @@ class Brain()
 #### \_\_init\_\_
 
 ```python
- | __init__(memory: BaseMemory, img_size: Tuple, nov_thresh: float, novelty_loss_type: str, train_epochs_per_iter: int = 1)
+ | __init__(memory: BaseMemory, img_size: Tuple, nov_thresh: float = 0.25, novelty_loss_type: str = 'MSE', train_epochs_per_iter: int = 1)
 ```
 
 Initializes the Brain by creating CNN and AE
@@ -718,7 +743,7 @@ Initializes the Brain by creating CNN and AE
 - `img_size` - Tuple
   The image size of each grain from the agent's field of view
   nov_thresh : float
-  The novelty cutoff used in training
+  (Currently deprecated). The novelty cutoff used in training
 - `novelty_loss_type` - str
   A string indicating which novelty function to use (MSE or MAE)
 - `train_epochs_per_iter` - int

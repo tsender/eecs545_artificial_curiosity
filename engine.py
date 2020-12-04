@@ -156,8 +156,8 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
     agent_lst = []
 
     # Generate a bunch of agents from the motivation, positions, and map
-    for m, p in zip(motivation_lst, position_lst):
-        agent_lst.append(Agent(m(map=map), p))
+    for motiv, pos in zip(motivation_lst, position_lst):
+        agent_lst.append(Agent(motiv, pos))
 
     progress_bar_width = 50
     num_agents = len(agent_lst)
@@ -170,7 +170,7 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
                 agent.step()
             except Exception as e:
                 # TODO: Should probably replace this with a stack trace
-                print('problem at', i, "with agent:", agent)
+                print('Problem at step ', i, " with agent:", agent)
                 print(e)
                 return
         
@@ -178,7 +178,7 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
             frac = (i+1) / float(iterations)
             left = int(progress_bar_width * frac)
             right = progress_bar_width - left
-            print(f'\rAgent {current_agent_id}/{num_agents} Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}%', sep='', end='', flush=True)
+            print(f'\rAgent {current_agent_id}/{num_agents} Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}% ', sep='', end='', flush=True)
         print("") # Moves carriage to next line
         current_agent_id += 1
 
@@ -263,7 +263,12 @@ def load_agent_data(path: str):
     return list(map(lambda x: tuple(map(int, x)), lst_content[1:]))
 
 if __name__ == "__main__":
-    m = Map('data/mars.png', 64, 2)
+    from memory import PriorityBasedMemory, ListBasedMemory
+    from brain import Brain
+    fov = 64 # Allowed FOVs = {32, 64, 128}
+    map = Map('data/mars.png', fov, 2)
 
-    run_experiment([Random], [(2000, 1000)],
-                   m, 100000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")
+    brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
+    motivations = [Random(map=map), Linear(map=map)] # Curiosity(map=map, brain=brain)]
+    positions = [(2000,1000), (2000, 1000)] # (2000, 1000)]
+    run_experiment(motivations, positions, map, 1000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")

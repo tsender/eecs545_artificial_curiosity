@@ -12,7 +12,7 @@ import networks
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class Brain:
-    def __init__(self, memory: BaseMemory, img_size: Tuple, nov_thresh: float, novelty_loss_type: str, train_epochs_per_iter: int = 1):
+    def __init__(self, memory: BaseMemory, img_size: Tuple, nov_thresh: float = 0.25, novelty_loss_type: str = 'MSE', train_epochs_per_iter: int = 1):
         """Initializes the Brain by creating CNN and AE
         
         Args:
@@ -21,7 +21,7 @@ class Brain:
         img_size: Tuple
             The image size of each grain from the agent's field of view
         nov_thresh : float
-            The novelty cutoff used in training
+            (Currently deprecated). The novelty cutoff used in training
         novelty_loss_type: str
             A string indicating which novelty function to use (MSE or MAE)
         train_epochs_per_iter: int
@@ -210,7 +210,10 @@ if __name__ == "__main__":
 
     img = Image.open('data/x.jpg').convert('L').resize((64,64))
 
-    brain1 = Brain(ListBasedMemory(64), (64,64,1), 0.25, 'MSE', 1) # 0.25 seems to be the smallest reasonable value for novelty thresh
+    # NOTE
+    # 0.25 seems to be the smallest value that the novelty loss will go.
+    # If we use nov_thresh for training, do not set below 0.25
+    brain1 = Brain(ListBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)
     brain2 = Brain(PriorityBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)
 
     grain_nov = brain2.add_grains([

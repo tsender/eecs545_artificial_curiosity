@@ -1,6 +1,6 @@
 from PIL import Image
 from pathlib import Path
-from IPython.display import Image as show
+# from IPython.display import Image as show
 from typing import List, Tuple
 
 class Map:

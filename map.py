@@ -177,11 +177,11 @@ class Map:
 
         # Need to add +1 because PIL doesn't take coordinates, it takes the length to travel
         # along each path
-        lb_coordinates = (self._left(
-            position[0], self.fov), self._down(position[1], self.fov))
+        lb_coordinates = (left(
+            position[0], self.fov), down(position[1], self.fov))
 
-        rt_coordinates = (self._right(
-            position[0], self.fov+1), self._up(position[1], self.fov+1))
+        rt_coordinates = (right(
+            position[0], self.fov+1), up(position[1], self.fov+1))
 
         return self.img.crop((*(lb_coordinates), *(rt_coordinates)))
 

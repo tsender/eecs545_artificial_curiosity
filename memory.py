@@ -1,72 +1,51 @@
 import heapq
 from typing import Tuple, List, Generator
-from artificial_curiosity_types import Artificial_Curiosity_Types as act
-from experience import Experience
 import pprint
+import abc
 from PIL import Image
 
-class Memory:
+from experience import Experience
+
+class BaseMemory(metaclass=abc.ABCMeta):
     """
-    This class abstracts away the specific implementation of an autonomous agent's memory unit
-
-    Attributes
-
-    None
-
+    Base memory class for the agent's brain.
 
     Methods
 
-    `__init__(maxLength: int = 32)`  
-        Initializes the memory unit with a default capacity of 32 Experiences
+    `__init__(maxLength: int = 64)`  
+        Initializes the memory unit with a default capacity of 64 Experiences
     `push(data: Experience)`  
-        Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the smallest act.Novelty
-    `memList() -> List[Experience]`  
+        Adds an Experience to the memory unit.
+    `as_list() -> List[Experience]`  
         Returns a list of Experience instances
     """
 
-    def __init__(self, maxLength: int = 32):
+    def __init__(self, max_length: int = 64):
         """
-        Parameters
-        ---------
-        maxLength : int  
-            The maximum number of experiences(Experience) that the memory unit can contain
-        
-        Returns
-        -------
-        Memory
+        Args:
+            maxLength : int  
+                The maximum number of experiences(Experience) that the memory unit can contain
         """
-        self._heap: List[Experience] = []
-        self.maxLength: int = maxLength
+        self._memory = []
+        self._max_length = max_length
 
+    @abc.abstractmethod
     def push(self, data: Experience):
+        """ Add an experience to memory
+        
+        Args
+            data : Experience  
+                An experience to add
         """
-        ### Parameters
+        pass
 
-        > data : Experience  
-        >    > Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
+    def as_list(self) -> List[Experience]:
+        """ Returns a copy of the current memory
 
         Returns
-
-        None
-        """
-        if(len(self._heap) < self.maxLength):
-            heapq.heappush(self._heap, data)
-        # Do nothing if less than the smallest element because it would not be interesting enough to remember
-        elif(data > self._heap[0]):
-            heapq.heappushpop(self._heap, data)
-
-    def memList(self) -> List[Experience]:
-        """
-        Parameters
-
-        None
-
-        Returns
-
-        List[Experience]
             A list of Experience objects
         """
-        return self._heap
+        return self._memory.copy()
 
     def __str__(self):
         return str(vars(self))
@@ -74,15 +53,70 @@ class Memory:
     def __repr__(self):
         return pprint.pformat(vars(self))
 
+class PriorityBasedMemory(BaseMemory):
+    """
+    Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
+    Low novelty corresponds to higher priority (also makes it easier to remove the experience).
+    """
+
+    def __init__(self, max_length: int = 64):
+        super().__init__(max_length)
+
+    def push(self, data: Experience):
+        """ Add an experience to memory
+        
+        Args
+            data : Experience  
+                An experience to add. If full, experiences that are less novel are removed (forgotten).
+        """
+
+        if(len(self._memory) < self._max_length):
+            heapq.heappush(self._memory, data)
+        elif(data > self._memory[0]):
+            heapq.heappushpop(self._memory, data) # New data must be more interesting than the least interesting experience
+
+class ListBasedMemory(BaseMemory):
+    """
+    Memory class that uses a simple fixed-length list to store the latest experiences.
+    """
+
+    def __init__(self, max_length: int = 64):
+        super().__init__(max_length)
+
+    def push(self, data: Experience):
+        """ Add an experience to memory
+        
+        Args
+            data : Experience  
+                An experience to add. If full, remove oldest experience and add new experience.
+        """
+
+        self._memory.append(data)
+        if(len(self._memory) > self._max_length):
+            self._memory.pop(0)
+
 if __name__ == "__main__":
+    print("Priority Based Memory")
     print = pprint.PrettyPrinter(indent=4).pprint
-    m = Memory(5)
+    m = PriorityBasedMemory(5)
     for i in range(5):
-        m.push(Experience(i, None, None))
+        m.push(Experience(i, None))
 
     print(m)
-    m.push(Experience(6, None, None))
+    m.push(Experience(6, None))
     print(m)
 
-    for i in m.memList():
+    for i in m.as_list():
+        print(i.novelty)
+
+    print("List Based Memory")
+    m = ListBasedMemory(5)
+    for i in range(5):
+        m.push(Experience(i, None))
+
+    print(m)
+    m.push(Experience(6, None))
+    print(m)
+
+    for i in m.as_list():
         print(i.novelty)

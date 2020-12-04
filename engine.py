@@ -1,7 +1,6 @@
 from typing import Tuple, List
 from map import Map
 from agent import Agent, Curiosity, Linear, Random, Motivation
-from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import csv
@@ -160,22 +159,28 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
     for m, p in zip(motivation_lst, position_lst):
         agent_lst.append(Agent(m(map=map), p))
 
-    # Creates a loading bar
-    with tqdm(total=iterations, desc="Iterations", leave=False) as t_iter:
-        # Goes through all of the iterations
+    progress_bar_width = 50
+    num_agents = len(agent_lst)
+    current_agent_id = 1
+    
+    for agent in agent_lst:
         for i in range(iterations):
-            # Gives every agent a turn
-            for agent in agent_lst:
-                # Error handling in case something goes wrong
-                try:
-                    agent.step()
-                except Exception as e:
-                    # TODO: Should probably replace this with a stack trace
-                    print('problem at', i, "with agent:", agent)
-                    print(e)
-                    return
-            # Increment the loading bar counter
-            t_iter.update()
+            # Error handling in case something goes wrong
+            try:
+                agent.step()
+            except Exception as e:
+                # TODO: Should probably replace this with a stack trace
+                print('problem at', i, "with agent:", agent)
+                print(e)
+                return
+        
+            # Update progress bar for agent
+            frac = (i+1) / float(iterations)
+            left = int(progress_bar_width * frac)
+            right = progress_bar_width - left
+            print(f'\rAgent {current_agent_id}/{num_agents} Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}%', sep='', end='', flush=True)
+        print("") # Moves carriage to next line
+        current_agent_id += 1
 
     # Graph the agent's paths
     plot_paths(map, agent_lst, show, saveGraph, dirname)

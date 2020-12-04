@@ -3,6 +3,133 @@ menu: main
 title: API Documentation
 ---
 
+<a name="artificial_curiosity_types"></a>
+# artificial\_curiosity\_types
+
+<a name="artificial_curiosity_types.addType"></a>
+#### addType
+
+```python
+addType(**args)
+```
+
+Makes it easier to add types that reference other custom types
+Parameters
+__________
+**args : typeing.Type
+    Can add any type by passing <name> = <type>, where <type> is a type from the typing library
+
+Returns
+_______
+None
+
+<a name="memory"></a>
+# memory
+
+<a name="memory.BaseMemory"></a>
+## BaseMemory Objects
+
+```python
+class BaseMemory(, metaclass=abc.ABCMeta)
+```
+
+Base memory class for the agent's brain.
+
+Methods
+
+`__init__(maxLength: int = 64)`  
+    Initializes the memory unit with a default capacity of 64 Experiences
+`push(data: Experience)`  
+    Adds an Experience to the memory unit.
+`as_list() -> List[Experience]`  
+    Returns a list of Experience instances
+
+<a name="memory.BaseMemory.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(max_length: int = 64)
+```
+
+**Arguments**:
+
+  maxLength : int
+  The maximum number of experiences(Experience) that the memory unit can contain
+
+<a name="memory.BaseMemory.push"></a>
+#### push
+
+```python
+ | @abc.abstractmethod
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add
+
+<a name="memory.BaseMemory.as_list"></a>
+#### as\_list
+
+```python
+ | as_list() -> List[Experience]
+```
+
+Returns a copy of the current memory
+
+Returns
+    A list of Experience objects
+
+<a name="memory.PriorityBasedMemory"></a>
+## PriorityBasedMemory Objects
+
+```python
+class PriorityBasedMemory(BaseMemory)
+```
+
+Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
+Low novelty corresponds to higher priority (also makes it easier to remove the experience).
+
+<a name="memory.PriorityBasedMemory.push"></a>
+#### push
+
+```python
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add. If full, experiences that are less novel are removed (forgotten).
+
+<a name="memory.ListBasedMemory"></a>
+## ListBasedMemory Objects
+
+```python
+class ListBasedMemory(BaseMemory)
+```
+
+Memory class that uses a simple fixed-length list to store the latest experiences.
+
+<a name="memory.ListBasedMemory.push"></a>
+#### push
+
+```python
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add. If full, remove oldest experience and add new experience.
+
+<a name="__init__"></a>
+# \_\_init\_\_
+
 <a name="experience"></a>
 # experience
 
@@ -13,21 +140,19 @@ title: API Documentation
 class Experience()
 ```
 
-A type for a measure of novelty, a feature vector, and an associated image. This is meant to be used by the Memory and the Brain
+A type for a measure of novelty and an associated image. This is meant to be used by the Memory and the Brain
 
 Attributes
 ----------
 self.novelty : float
     A float that represents the movelty of the Experience
-self.featureVector : np.float32
-    A numpy.float32 1D array that holds the different features that represent this memory
 self.grain : Image.Image
     An image that will show us what the machine remembers
 
 
 Methods
 -------
-__init__(nov: float, fVect: np.float32, grn: Image.Image)
+__init__(nov: float, grn: Image.Image)
     Initializes the Experience with the given novelty, feature vector, and image
 __lt__(other)
     Compares against the novelty. Works for scalars and other instances of Experience
@@ -48,15 +173,13 @@ __str__()
 #### \_\_init\_\_
 
 ```python
- | __init__(nov: float, fVect: np.float32, grn: Image.Image)
+ | __init__(nov: float, grn: Image.Image)
 ```
 
 Parameters
 __________
 nov : float
     The measure of novelty, expressed as a float
-fVect : np.float32
-    A numpy.float32 1D array that holds the different features that represent this grain
 grn: Image.Image
     A grain (image) to be remembered. This exists so we can reference it later
 
@@ -169,159 +292,6 @@ Returns
 _______
 string
 
-<a name="memory"></a>
-# memory
-
-<a name="memory.Memory"></a>
-## Memory Objects
-
-```python
-class Memory()
-```
-
-This class abstracts away the specific implementation of an autonomous agent's memory unit
-
-Attributes
-
-None
-
-
-Methods
-
-`__init__(maxLength: int = 32)`  
-    Initializes the memory unit with a default capacity of 32 Experiences
-`push(data: Experience)`  
-    Adds an Experience to the memory unit. If the memory is full, it forgets the Experience that had the smallest act.Novelty
-`memList() -> List[Experience]`  
-    Returns a list of Experience instances
-
-<a name="memory.Memory.__init__"></a>
-#### \_\_init\_\_
-
-```python
- | __init__(maxLength: int = 32)
-```
-
-Parameters
----------
-maxLength : int  
-    The maximum number of experiences(Experience) that the memory unit can contain
-
-Returns
--------
-Memory
-
-<a name="memory.Memory.push"></a>
-#### push
-
-```python
- | push(data: Experience)
-```
-
-### Parameters
-
-> data : Experience  
->    > Adds an experience (Experience) to memory. Once full, experiences that are less novel (lower values of act.Novelty) will be forgotten as new experiences are added
-
-Returns
-
-None
-
-<a name="memory.Memory.memList"></a>
-#### memList
-
-```python
- | memList() -> List[Experience]
-```
-
-### Parameters
-
-> None
-
-### Returns
-
-> List[Experience]
->    > A list of Experience objects
-
-<a name="engine"></a>
-# engine
-
-<a name="engine.save_agent_data"></a>
-#### save\_agent\_data
-
-```python
-save_agent_data()
-```
-
-This function will be used to save important information about the model, such as its path
-
-<a name="engine.plot_paths"></a>
-#### plot\_paths
-
-```python
-plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname: str)
-```
-
-Plots out the paths of the agents on the map
-
-Params
-------
-map: Map
-    A map that will be used to get the bounds and background for plotting
-
-agent_lst: List[Agent]
-    A list of agents whose paths need to be plotted
-
-show: bool
-    Whether the plots should be displayed or not
-
-save: bool
-    Whether the plots should be saved to the disk or not
-
-dirname: str
-    The directory where the images will be stored
-
-Returns
--------
-None
-
-<a name="engine.run_experiment"></a>
-#### run\_experiment
-
-```python
-run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save: bool = False, dirname: str = None)
-```
-
-Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
-
-Params
-------
-motivation_lst: List[Motivation]
-    A list of Motivation class instances to be used as the drivers for agents. This must be the same length as position_lst
-
-position_lst: List[Tuple[int]]
-    A list of poitions for the agents to start out at (matching indices with elements from motivation_lst). It must be the same length as potivation_lst.
-
-map: Map
-    An instance of the Map class that will be used by the agent to handle directions, and for the plotting
-
-iterations: int
-    The number of steps that each agent should take.
-
-show: bool=True
-    Whether the graphs should be displayed
-
-save: bool=False
-    Whether the graphs should be saved
-
-dirname: str=None
-    The directory in which the graphs will be stored
-
-
-Returns
--------
-None
-
 <a name="map_helpers"></a>
 # map\_helpers
 
@@ -398,29 +368,6 @@ find_coordinates(rover_position, fov, width, height)
 **Returns**:
 
   A list of the cropping coordinates for each of the (max) four grains
-
-<a name="artificial_curiosity_types"></a>
-# artificial\_curiosity\_types
-
-<a name="artificial_curiosity_types.addType"></a>
-#### addType
-
-```python
-addType(**args)
-```
-
-Makes it easier to add types that reference other custom types
-Parameters
-__________
-**args : typeing.Type
-    Can add any type by passing <name> = <type>, where <type> is a type from the typing library
-
-Returns
-_______
-None
-
-<a name="__init__"></a>
-# \_\_init\_\_
 
 <a name="agent"></a>
 # agent
@@ -519,85 +466,103 @@ This performs a simple step for the agent, moving it from one position to the ne
 <a name="testing"></a>
 # testing
 
-<a name="novelty"></a>
-# novelty
+<a name="engine"></a>
+# engine
 
-The novelty module creates functions to evaluate the novelty (loss) which
-are used in brain. The nevelty functions operate on the results of autoencoder
-novelty func. 1: l1_norm loss
-novelty func. 2: l2_norm loss
-novelty func. 3:
-
-<a name="brain"></a>
-# brain
-
-<a name="brain.Brain"></a>
-## Brain Objects
+<a name="engine.plot_paths"></a>
+#### plot\_paths
 
 ```python
-class Brain()
+plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname: str)
 ```
 
-<a name="brain.Brain.__init__"></a>
-#### \_\_init\_\_
-
-```python
- | __init__(nov_thresh: float, novelty_loss_type: str, max_train_epochs: int = 100)
-```
-
-Initializes the Brain by creating CNN and AE
+Plots out the paths of the agents on the map
 
 Params
 ------
-nov_thresh : float
-    The novelty cutoff used in training
-novelty_function: Callable
-    The callback that will be used to determine the novelty for any given feature-vector/reconstructed-vector pairs
-max_train_epochs: int
-    Maximum number of training epochs (in case avg loss is still not at novelty thresh)
+map: Map
+    A map that will be used to get the bounds and background for plotting
 
-<a name="brain.Brain.add_grains"></a>
-#### add\_grains
+agent_lst: List[Agent]
+    A list of agents whose paths need to be plotted
+
+show: bool
+    Whether the plots should be displayed or not
+
+save: bool=False
+    Whether the graphs should be saved
+
+dirname: str
+    The directory where the images will be stored
+
+Returns
+-------
+None
+
+<a name="engine.run_experiment"></a>
+#### run\_experiment
 
 ```python
- | add_grains(grains: List[Image.Image])
+run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, saveGraph: bool = False, saveLocation: bool = True, dirname: str = None)
 ```
 
-Add new grains to memory
+Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
+
+Params
+------
+motivation_lst: List[Motivation]
+    A list of Motivation class instances to be used as the drivers for agents. This must be the same length as position_lst
+
+position_lst: List[Tuple[int]]
+    A list of poitions for the agents to start out at (matching indices with elements from motivation_lst). It must be the same length as potivation_lst.
+
+map: Map
+    An instance of the Map class that will be used by the agent to handle directions, and for the plotting
+
+iterations: int
+    The number of steps that each agent should take.
+
+show: bool=True
+    Whether the graphs should be displayed
+
+saveGraph: bool
+    Whether the plots should be saved to the disk or not
+
+saveLoction: bool
+    Whether the agent's position should be save to the disk
+
+dirname: str=None
+    The directory in which the graphs will be stored
+
+
+Returns
+-------
+None
+
+<a name="engine.save_agent_data"></a>
+#### save\_agent\_data
+
+```python
+save_agent_data(agent_lst: List[Agent], save: bool, dirname: str)
+```
+
+Save the path record of each agent as a csv file
 
 Params:
-grains: List[Image.Image]
-List of new grains
+------
+agent_lst: List[Agent]
+A list of agent whose path coordinates to be saved
+
+save: bool
+Save the agent's path data or not
+
+dirname: str
+THe directory name where the csv file will be saved
 
 **Returns**:
 
-  List of novelty for new grains
-
-<a name="brain.Brain.evaluate_novelty"></a>
-#### evaluate\_novelty
-
-```python
- | evaluate_novelty(grains: List[Image.Image])
-```
-
-Evaluate novelty of a list of grains
-
-Params:
-grains: List[Image.Image]
-List of new grains
-
-**Returns**:
-
-  List of novelty for new grains
-
-<a name="brain.Brain.learn_grains"></a>
-#### learn\_grains
-
-```python
- | learn_grains()
-```
-
-Train the AE to learn new features from memory
+  ------
+  None
 
 <a name="map"></a>
 # map
@@ -676,4 +641,133 @@ coordinates: A list of tuples that represent coordinates
 **Returns**:
 
   A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
+
+<a name="networks"></a>
+# networks
+
+<a name="networks.create_network"></a>
+#### create\_network
+
+```python
+create_network(image_size: Tuple)
+```
+
+Create the CNN-AE based on the input image size. Only square grey scale images allowed.
+The input and output sizes for the network are the same.
+
+**Arguments**:
+
+- `image_size` - Tuple
+  Image size as Tuple of (H,W,C)
+  
+
+**Returns**:
+
+  A tensorflow model for the network.
+
+<a name="networks.create_network32"></a>
+#### create\_network32
+
+```python
+create_network32()
+```
+
+Create the network for input size of (32, 32, 1)
+
+<a name="networks.create_network64"></a>
+#### create\_network64
+
+```python
+create_network64()
+```
+
+Create the network for input size of (64, 64, 1)
+
+<a name="networks.create_network128"></a>
+#### create\_network128
+
+```python
+create_network128()
+```
+
+Create the network for input size of (128, 128, 1)
+
+<a name="brain"></a>
+# brain
+
+<a name="brain.Brain"></a>
+## Brain Objects
+
+```python
+class Brain()
+```
+
+<a name="brain.Brain.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(memory: BaseMemory, img_size: Tuple, nov_thresh: float, novelty_loss_type: str, train_epochs_per_iter: int = 1)
+```
+
+Initializes the Brain by creating CNN and AE
+
+**Arguments**:
+
+- `memory` - BaseMemory
+  A memory object that implements BaseMemory  (such as PriorityBasedMemory)
+- `img_size` - Tuple
+  The image size of each grain from the agent's field of view
+  nov_thresh : float
+  The novelty cutoff used in training
+- `novelty_loss_type` - str
+  A string indicating which novelty function to use (MSE or MAE)
+- `train_epochs_per_iter` - int
+  Number of epochs to train for in a single training session
+
+<a name="brain.Brain.add_grains"></a>
+#### add\_grains
+
+```python
+ | add_grains(grains: List[List[Image.Image]])
+```
+
+Add new grains to memory
+
+Params:
+grains: List[List[Image.Image]]
+2D List of new grains
+
+**Returns**:
+
+  2D List of novelty for new grains
+
+<a name="brain.Brain.evaluate_novelty"></a>
+#### evaluate\_novelty
+
+```python
+ | evaluate_novelty(grains: List[List[Image.Image]])
+```
+
+Evaluate novelty of a list of grains
+
+Params:
+grains: List[List[Image.Image]]
+2D List of new grains
+
+**Returns**:
+
+  2D List of novelty for new grains
+
+<a name="brain.Brain.learn_grains"></a>
+#### learn\_grains
+
+```python
+ | learn_grains()
+```
+
+Train the network to learn new features from memory
+
+**Returns**:
+
+  The current average loss from the last training epoch
 

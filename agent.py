@@ -11,10 +11,6 @@ import random
 # This is the number of pixels which the agent will move every step
 RATE = 16
 
-# TODO: I didn't add documentation for the methods at the top of each class because Ted mentioned that he was coming up
-# with a new method of moving and I didn't want to write them just to have them removed
-
-
 # Abstract Class
 class Motivation(metaclass=abc.ABCMeta):
     """This is an abstract class that represents the decision making process (or motivation) behind an agent"""
@@ -47,12 +43,12 @@ class Motivation(metaclass=abc.ABCMeta):
 
 class Curiosity(Motivation):
     """This class extends Motivation and creates a curious motivation for an agent"""
-    def __init__(self, map: Map):
-        # Creates a brain for the agent with some parameters
-        # TODO: These are not optimal, they have been set for testing purposes
-        self._brain = Brain(nov_thresh=0.1, novelty_loss_type='mse')
+    def __init__(self, map: Map, brain: Brain):
         # This assigns a map to the agent, which is where they will get their directions from
         self._map = map
+        # Creates a brain for the agent with some parameters
+        # TODO: These are not optimal, they have been set for testing purposes
+        self._brain = brain
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -152,7 +148,7 @@ class Linear(Motivation):
         # Cycles through all of the options until a valid position is found
         while not position_filter[self.direction[1]][self.direction[0]]:
             if n:
-                print(position)
+                # print(position)
                 n=  False
             # I'll explain on one and the rest should be self explanatory
 
@@ -219,8 +215,11 @@ class Agent:
 
 
 if __name__ == "__main__":
-    map = Map('data/x.jpg', 30, 2)
+    from memory import PriorityBasedMemory, ListBasedMemory
+    fov = 64 # Allowed FOVs = {32, 64, 128}
+    map = Map('data/x.jpg', fov, 2)
 
-    print(Curiosity(map=map).get_from_position((30, 30)))
-    print(Random(map=map).get_from_position((30, 30)))
-    print(Linear(map=map).get_from_position((30, 30)))
+    brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
+    print(Curiosity(map=map, brain=brain).get_from_position((fov, fov)))
+    print(Random(map=map).get_from_position((fov, fov)))
+    print(Linear(map=map).get_from_position((fov, fov)))

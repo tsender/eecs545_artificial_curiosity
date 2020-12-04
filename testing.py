@@ -2,8 +2,7 @@ from PIL import Image
 import unittest
 
 from experience import Experience
-from priority_based_memory import PriorityBasedMemory
-from list_based_memory import ListBasedMemory
+from memory import PriorityBasedMemory, ListBasedMemory
 from artificial_curiosity_types import Artificial_Curiosity_Types as act
 from map import Map
 

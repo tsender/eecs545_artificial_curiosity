@@ -5,7 +5,7 @@ import os
 import math
 from typing import List, Tuple
 
-from base_memory import BaseMemory
+from memory import BaseMemory
 from experience import Experience
 import networks
 
@@ -102,6 +102,7 @@ class Brain:
         # rgb_grain = tf.image.per_image_standardization(rgb_grain) # Transform images to zero mean and unit variance
         # rgb_grain = tf.image.resize(rgb_grain, (self._image_width, self._image_width)) # Resize to CNN base input size
         tf_img = tf.keras.preprocessing.image.img_to_array(grain_in)
+        tf_img = (tf_img - 127.5) / 127.5 # Normalize to [-1,1]
         tf_img = tf.reshape(tf_img, self._img_size)
         return tf_img
 
@@ -204,8 +205,7 @@ class Brain:
         return cur_avg_loss
 
 if __name__ == "__main__":
-    from list_based_memory import ListBasedMemory
-    from priority_based_memory import PriorityBasedMemory
+    from memory import PriorityBasedMemory, ListBasedMemory
 
     brain1 = Brain(ListBasedMemory(64), (64,64,1), 0.25, 'MSE', 1) # 0.25 seems to be the smallest reasonable value for novelty thresh
     brain2 = Brain(PriorityBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)

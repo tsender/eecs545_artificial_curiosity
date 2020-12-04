@@ -3,6 +3,106 @@ from pathlib import Path
 # from IPython.display import Image as show
 from typing import List, Tuple
 
+"""
+This explaination applies to the next four functions equally, so I'm going to put it
+here:
+
+Our rover sits on a specific pixel. However, we want to be able to split its field of
+view perfectly in half. As a result, we slightly offset our field of view so that the
+rover is sitting in the center pixel of one of the center pixels. However, this means
+that calculating positions based on the rover's position is a little trick, since
+we have to act like the rover is actually between the four center pixels (think of
+the rover as being in the bottom left square of the text "[+]", but us acting as if
+it's on the center of the plus sign to make sure that its behaviour is balanced).
+
+These functions are for transforming direction information from the saved position's
+point of view to behave as if it's coming from the center of 4 pixels. This means that
+there are slightly different offsets for each function, but we can treat them the same
+and they will resolve the difference.
+
+Note that we are using an inverted Y axis.
+"""
+
+def down(y_pos: int, distance: int):
+    """
+    Find the pixel a given distance from the virtual agent location
+
+    Params
+    ------
+
+    y_pos: int
+        An index along the y axis that will be used as the starting point
+
+    distance: int
+        The distance we want to trayel along the y axis from that point.
+
+    Returns
+    -------
+
+    An integer for the new location
+    """
+    return y_pos - distance
+
+def up(y_pos: int, distance: int):
+    """
+    Find the pixel a given distance from the virtual agent location
+
+    Params
+    ------
+
+    y_pos: int
+        An index along the y axis that will be used as the starting point
+
+    distance: int
+        The distance we want to trayel along the y axis from that point.
+
+    Returns
+    -------
+
+    An integer for the new location
+    """
+    return y_pos + distance - 1
+
+def left(x_pos: int, distance: int):
+    """
+    Find the pixel a given distance from the virtual agent location
+
+    Params
+    ------
+
+    x_pos: int
+        An index along the x axis that will be used as the starting point
+
+    distance: int
+        The distance we want to trayel along the x axis from that point.
+
+    Returns
+    -------
+
+    An integer for the new location
+    """
+    return x_pos - distance + 1
+
+def right(x_pos: int, distance: int):
+    """
+    Find the pixel a given distance from the virtual agent location
+
+    Params
+    ------
+
+    x_pos: int
+        An index along the x axis that will be used as the starting point
+
+    distance: int
+        The distance we want to trayel along the x axis from that point.
+
+    Returns
+    -------
+
+    An integer for the new location
+    """
+    return x_pos + distance
+
 class Map:
     """
     This class will hold some basic information about the environment our agent is training in,
@@ -65,111 +165,6 @@ class Map:
         valid_y = (position[1] < self.img.height and position[1] >= 0)
 
         return valid_x and valid_y
-
-    
-
-    """
-    This explaination applies to the next four functions equally, so I'm going to put it
-    here:
-
-    Our rover sits on a specific pixel. However, we want to be able to split its field of 
-    view perfectly in half. As a result, we slightly offset our field of view so that the
-    rover is sitting in the center pixel of one of the center pixels. However, this means
-    that calculating positions based on the rover's position is a little trick, since
-    we have to act like the rover is actually between the four center pixels (think of
-    the rover as being in the bottom left square of the text "[+]", but us acting as if
-    it's on the center of the plus sign to make sure that its behaviour is balanced).
-
-    These functions are for transforming direction information from the saved position's
-    point of view to behave as if it's coming from the center of 4 pixels. This means that
-    there are slightly different offsets for each function, but we can treat them the same
-    and they will resolve the difference.
-
-    Note that we are using an inverted Y axis.
-    """
-
-    def _down(self, y_pos: int, distance: int):
-        """
-        Find the pixel a given distance from the virtual agent location
-
-        Params
-        ------
-
-        y_pos: int
-            An index along the y axis that will be used as the starting point
-
-        distance: int
-            The distance we want to trayel along the y axis from that point.
-
-        Returns
-        -------
-
-        An integer for the new location
-        """
-        return y_pos - distance
-
-
-    def _up(self, y_pos: int, distance: int):
-        """
-        Find the pixel a given distance from the virtual agent location
-
-        Params
-        ------
-
-        y_pos: int
-            An index along the y axis that will be used as the starting point
-
-        distance: int
-            The distance we want to trayel along the y axis from that point.
-
-        Returns
-        -------
-
-        An integer for the new location
-        """
-        return y_pos + distance - 1
-
-
-    def _left(self, x_pos: int, distance: int):
-        """
-        Find the pixel a given distance from the virtual agent location
-
-        Params
-        ------
-
-        x_pos: int
-            An index along the x axis that will be used as the starting point
-
-        distance: int
-            The distance we want to trayel along the x axis from that point.
-
-        Returns
-        -------
-
-        An integer for the new location
-        """
-        return x_pos - distance + 1
-
-
-    def _right(self, x_pos: int, distance: int):
-        """
-        Find the pixel a given distance from the virtual agent location
-
-        Params
-        ------
-
-        x_pos: int
-            An index along the x axis that will be used as the starting point
-
-        distance: int
-            The distance we want to trayel along the x axis from that point.
-
-        Returns
-        -------
-
-        An integer for the new location
-        """
-        return x_pos + distance
 
 
     def full_view(self, position: Tuple[int]):
@@ -254,18 +249,18 @@ class Map:
 
         # Visual top left, which is bottom left in PIL
         output[0][0] = self._in_map(
-            (self._left(c[0][0][0], self.fov), self._down(c[0][0][1], self.fov)))
+            (left(c[0][0][0], self.fov), down(c[0][0][1], self.fov)))
 
         # Visual top right, which is bottom right in PIL
         output[0][1] = self._in_map(
-            (self._right(c[0][1][0], self.fov), self._down(c[0][1][1], self.fov)))
+            (right(c[0][1][0], self.fov), down(c[0][1][1], self.fov)))
 
         # Visual bottom left, which is top left in PIL
         output[1][0] = self._in_map(
-            (self._left(c[1][0][0], self.fov), self._up(c[1][0][1], self.fov)))
+            (left(c[1][0][0], self.fov), up(c[1][0][1], self.fov)))
 
         # Visual bottom right, which is top right in PIL
         output[1][1] = self._in_map(
-            (self._right(c[1][1][0], self.fov), self._up(c[1][1][1], self.fov)))
+            (right(c[1][1][0], self.fov), up(c[1][1][1], self.fov)))
 
         return output

@@ -3,6 +3,133 @@ menu: main
 title: API Documentation
 ---
 
+<a name="artificial_curiosity_types"></a>
+# artificial\_curiosity\_types
+
+<a name="artificial_curiosity_types.addType"></a>
+#### addType
+
+```python
+addType(**args)
+```
+
+Makes it easier to add types that reference other custom types
+Parameters
+__________
+**args : typeing.Type
+    Can add any type by passing <name> = <type>, where <type> is a type from the typing library
+
+Returns
+_______
+None
+
+<a name="memory"></a>
+# memory
+
+<a name="memory.BaseMemory"></a>
+## BaseMemory Objects
+
+```python
+class BaseMemory(, metaclass=abc.ABCMeta)
+```
+
+Base memory class for the agent's brain.
+
+Methods
+
+`__init__(maxLength: int = 64)`  
+    Initializes the memory unit with a default capacity of 64 Experiences
+`push(data: Experience)`  
+    Adds an Experience to the memory unit.
+`as_list() -> List[Experience]`  
+    Returns a list of Experience instances
+
+<a name="memory.BaseMemory.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(max_length: int = 64)
+```
+
+**Arguments**:
+
+  maxLength : int
+  The maximum number of experiences(Experience) that the memory unit can contain
+
+<a name="memory.BaseMemory.push"></a>
+#### push
+
+```python
+ | @abc.abstractmethod
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add
+
+<a name="memory.BaseMemory.as_list"></a>
+#### as\_list
+
+```python
+ | as_list() -> List[Experience]
+```
+
+Returns a copy of the current memory
+
+Returns
+    A list of Experience objects
+
+<a name="memory.PriorityBasedMemory"></a>
+## PriorityBasedMemory Objects
+
+```python
+class PriorityBasedMemory(BaseMemory)
+```
+
+Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
+Low novelty corresponds to higher priority (also makes it easier to remove the experience).
+
+<a name="memory.PriorityBasedMemory.push"></a>
+#### push
+
+```python
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add. If full, experiences that are less novel are removed (forgotten).
+
+<a name="memory.ListBasedMemory"></a>
+## ListBasedMemory Objects
+
+```python
+class ListBasedMemory(BaseMemory)
+```
+
+Memory class that uses a simple fixed-length list to store the latest experiences.
+
+<a name="memory.ListBasedMemory.push"></a>
+#### push
+
+```python
+ | push(data: Experience)
+```
+
+Add an experience to memory
+
+Args
+    data : Experience  
+        An experience to add. If full, remove oldest experience and add new experience.
+
+<a name="__init__"></a>
+# \_\_init\_\_
+
 <a name="experience"></a>
 # experience
 
@@ -165,139 +292,179 @@ Returns
 _______
 string
 
-<a name="list_based_memory"></a>
-# list\_based\_memory
+<a name="map_helpers"></a>
+# map\_helpers
 
-<a name="list_based_memory.ListBasedMemory"></a>
-## ListBasedMemory Objects
+File that has helper functions for the Map class
+
+1. is_grey_scale(img) : Checks whether the given image is greyscale or color
+2. is_valid_position(img, fov, position): Checks whether the given position is valid or not
+3. find_sitting_pixels(position, width, height): Finds the pixel that the rover is "sitting" on
+4. find_coordinates(rover_position, fov, width, height): Finds the cropping coordinates that create grains
+
+<a name="map_helpers.is_grey_scale"></a>
+#### is\_grey\_scale
 
 ```python
-class ListBasedMemory(BaseMemory)
+is_grey_scale(img)
 ```
 
-Memory class that uses a simple fixed-length list to store the latest experiences.
+Parameter:
+img: the PIL image object
 
-<a name="list_based_memory.ListBasedMemory.push"></a>
-#### push
+**Returns**:
 
-```python
- | push(data: Experience)
-```
+  A boolean indicating whether img is greyscale or not
 
-Add an experience to memory
-
-Args
-    data : Experience  
-        An experience to add. If full, remove oldest experience and add new experience.
-
-<a name="base_memory"></a>
-# base\_memory
-
-<a name="base_memory.BaseMemory"></a>
-## BaseMemory Objects
+<a name="map_helpers.is_valid_position"></a>
+#### is\_valid\_position
 
 ```python
-class BaseMemory(, metaclass=abc.ABCMeta)
-```
-
-Base memory class for the agent's brain.
-
-Methods
-
-`__init__(maxLength: int = 64)`  
-    Initializes the memory unit with a default capacity of 64 Experiences
-`push(data: Experience)`  
-    Adds an Experience to the memory unit.
-`as_list() -> List[Experience]`  
-    Returns a list of Experience instances
-
-<a name="base_memory.BaseMemory.__init__"></a>
-#### \_\_init\_\_
-
-```python
- | __init__(max_length: int = 64)
+is_valid_position(img, fov, position)
 ```
 
 **Arguments**:
 
-  maxLength : int
-  The maximum number of experiences(Experience) that the memory unit can contain
-
-<a name="base_memory.BaseMemory.push"></a>
-#### push
-
-```python
- | @abc.abstractmethod
- | push(data: Experience)
-```
-
-Add an experience to memory
-
-Args
-    data : Experience  
-        An experience to add
-
-<a name="base_memory.BaseMemory.as_list"></a>
-#### as\_list
-
-```python
- | as_list() -> List[Experience]
-```
-
-Returns a copy of the current memory
-
-Returns
-    A list of Experience objects
-
-<a name="networks"></a>
-# networks
-
-<a name="networks.create_network"></a>
-#### create\_network
-
-```python
-create_network(image_size: Tuple)
-```
-
-Create the CNN-AE based on the input image size. Only square grey scale images allowed.
-The input and output sizes for the network are the same.
-
-**Arguments**:
-
-- `image_size` - Tuple
-  Image size as Tuple of (H,W,C)
+  The image, fov and position passed to get_fov in map.py
   
 
 **Returns**:
 
-  A tensorflow model for the network.
+  A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
 
-<a name="networks.create_network32"></a>
-#### create\_network32
-
-```python
-create_network32()
-```
-
-Create the network for input size of (32, 32, 1)
-
-<a name="networks.create_network64"></a>
-#### create\_network64
+<a name="map_helpers.find_sitting_pixels"></a>
+#### find\_sitting\_pixels
 
 ```python
-create_network64()
+find_sitting_pixels(position, width, height)
 ```
 
-Create the network for input size of (64, 64, 1)
+**Arguments**:
 
-<a name="networks.create_network128"></a>
-#### create\_network128
+- `position` - the position of the rover
+- `width` - width (number of columns) of the image
+- `height` - height (number of rows) of the image
+  
+
+**Returns**:
+
+  A dictionary that represents the 4 pixels that the rover is "sitting" on
+
+<a name="map_helpers.find_coordinates"></a>
+#### find\_coordinates
 
 ```python
-create_network128()
+find_coordinates(rover_position, fov, width, height)
 ```
 
-Create the network for input size of (128, 128, 1)
+**Arguments**:
+
+- `rover_position` - A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels
+- `fov` - the fov
+- `width` - the width of the image
+- `height` - the height of the image
+  
+
+**Returns**:
+
+  A list of the cropping coordinates for each of the (max) four grains
+
+<a name="agent"></a>
+# agent
+
+<a name="agent.Motivation"></a>
+## Motivation Objects
+
+```python
+class Motivation(, metaclass=abc.ABCMeta)
+```
+
+This is an abstract class that represents the decision making process (or motivation) behind an agent
+
+<a name="agent.Motivation.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | @abc.abstractmethod
+ | get_from_position(position: Tuple[int])
+```
+
+This will get the agents next position based on the current position passed to it
+
+<a name="agent.Curiosity"></a>
+## Curiosity Objects
+
+```python
+class Curiosity(Motivation)
+```
+
+This class extends Motivation and creates a curious motivation for an agent
+
+<a name="agent.Curiosity.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | get_from_position(position: Tuple[int])
+```
+
+Implements the abstract method from Motivation. Gets the next position from the current position
+
+<a name="agent.Random"></a>
+## Random Objects
+
+```python
+class Random(Motivation)
+```
+
+This class extends Motivation, and randomly selects a position based on what is available
+
+<a name="agent.Random.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | get_from_position(position: Tuple[int])
+```
+
+Implements the abstract method from Motivation. Gets the next position from the current position
+
+<a name="agent.Linear"></a>
+## Linear Objects
+
+```python
+class Linear(Motivation)
+```
+
+This class extends Motivation, and is designed to move on a linear path
+
+<a name="agent.Linear.get_from_position"></a>
+#### get\_from\_position
+
+```python
+ | get_from_position(position: Tuple[int])
+```
+
+Implements the abstract method from Motivation. Gets the next position from the current position
+
+<a name="agent.Agent"></a>
+## Agent Objects
+
+```python
+class Agent()
+```
+
+This abtracts the motivation away so that we can iterate over them later
+
+<a name="agent.Agent.step"></a>
+#### step
+
+```python
+ | step()
+```
+
+This performs a simple step for the agent, moving it from one position to the next
+
+<a name="testing"></a>
+# testing
 
 <a name="engine"></a>
 # engine
@@ -397,228 +564,133 @@ THe directory name where the csv file will be saved
   ------
   None
 
-<a name="map_helpers"></a>
-# map\_helpers
+<a name="map"></a>
+# map
 
-File that has helper functions for the Map class
-
-1. is_grey_scale(img) : Checks whether the given image is greyscale or color
-2. is_valid_position(img, fov, position): Checks whether the given position is valid or not
-3. find_sitting_pixels(position, width, height): Finds the pixel that the rover is "sitting" on
-4. find_coordinates(rover_position, fov, width, height): Finds the cropping coordinates that create grains
-
-<a name="map_helpers.is_grey_scale"></a>
-#### is\_grey\_scale
+<a name="map.Map"></a>
+## Map Objects
 
 ```python
-is_grey_scale(img)
+class Map()
+```
+
+Map class that creates instances of the terrain map that the model will work on
+
+Methods
+
+`__init__(filepath: str, fov: int, sqrtGrains: int` 
+	initialize an instance of the given map and store fov and sqrtGrains
+
+`get_fov(position: tuple)` 
+	returns a list of grains (sub-images) with radius fov given the position of the model on the map
+
+`clean_directions(coordinates: list)` 
+	return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
+
+<a name="map.Map.__init__"></a>
+#### \_\_init\_\_
+
+```python
+ | __init__(filepath: str, fov: int, sqrtGrains: int)
+```
+
+**Arguments**:
+
+  
+- `filepath` - the stringpath containing the input terrain map -- can be a jpg or png
+- `fov` - an int radius of the field-of-view
+- `sqrtGrains` - The square root of the number of grains (sub-squares) in the fov -- an int
+  
+  
+
+**Returns**:
+
+  
+  A Map object with:
+  
+  The image from filepath (in greyscale),
+  fov,
+  sqrtGrains
+
+<a name="map.Map.get_fov"></a>
+#### get\_fov
+
+```python
+ | get_fov(position: tuple)
 ```
 
 Parameter:
-img: the PIL image object
+position: Position of the rover on the map -- a tuple expected in (column, row)
 
 **Returns**:
 
-  A boolean indicating whether img is greyscale or not
+  
+  A list of the grains that have been split from the img with radius fov, i.e.
+  the legal squares that the rover can go to in fov steps
 
-<a name="map_helpers.is_valid_position"></a>
-#### is\_valid\_position
+<a name="map.Map.clean_directions"></a>
+#### clean\_directions
 
 ```python
-is_valid_position(img, fov, position)
+ | clean_directions(coordinates: list)
 ```
+
+Parameter:
+coordinates: A list of tuples that represent coordinates
+
+**Returns**:
+
+  A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
+
+<a name="networks"></a>
+# networks
+
+<a name="networks.create_network"></a>
+#### create\_network
+
+```python
+create_network(image_size: Tuple)
+```
+
+Create the CNN-AE based on the input image size. Only square grey scale images allowed.
+The input and output sizes for the network are the same.
 
 **Arguments**:
 
-  The image, fov and position passed to get_fov in map.py
+- `image_size` - Tuple
+  Image size as Tuple of (H,W,C)
   
 
 **Returns**:
 
-  A boolean indicating whether it is a valid position or not, i.e. atleast [fov] pixels away from image edge
+  A tensorflow model for the network.
 
-<a name="map_helpers.find_sitting_pixels"></a>
-#### find\_sitting\_pixels
-
-```python
-find_sitting_pixels(position, width, height)
-```
-
-**Arguments**:
-
-- `position` - the position of the rover
-- `width` - width (number of columns) of the image
-- `height` - height (number of rows) of the image
-  
-
-**Returns**:
-
-  A dictionary that represents the 4 pixels that the rover is "sitting" on
-
-<a name="map_helpers.find_coordinates"></a>
-#### find\_coordinates
+<a name="networks.create_network32"></a>
+#### create\_network32
 
 ```python
-find_coordinates(rover_position, fov, width, height)
+create_network32()
 ```
 
-**Arguments**:
+Create the network for input size of (32, 32, 1)
 
-- `rover_position` - A dictionary of the pixels that the rover is "sitting" on, i.e. the one returned by find_sitting_pixels
-- `fov` - the fov
-- `width` - the width of the image
-- `height` - the height of the image
-  
-
-**Returns**:
-
-  A list of the cropping coordinates for each of the (max) four grains
-
-<a name="artificial_curiosity_types"></a>
-# artificial\_curiosity\_types
-
-<a name="artificial_curiosity_types.addType"></a>
-#### addType
+<a name="networks.create_network64"></a>
+#### create\_network64
 
 ```python
-addType(**args)
+create_network64()
 ```
 
-Makes it easier to add types that reference other custom types
-Parameters
-__________
-**args : typeing.Type
-    Can add any type by passing <name> = <type>, where <type> is a type from the typing library
+Create the network for input size of (64, 64, 1)
 
-Returns
-_______
-None
-
-<a name="__init__"></a>
-# \_\_init\_\_
-
-<a name="agent"></a>
-# agent
-
-<a name="agent.Motivation"></a>
-## Motivation Objects
+<a name="networks.create_network128"></a>
+#### create\_network128
 
 ```python
-class Motivation(, metaclass=abc.ABCMeta)
+create_network128()
 ```
 
-This is an abstract class that represents the decision making process (or motivation) behind an agent
-
-<a name="agent.Motivation.get_from_position"></a>
-#### get\_from\_position
-
-```python
- | @abc.abstractmethod
- | get_from_position(position: Tuple[int])
-```
-
-This will get the agents next position based on the current position passed to it
-
-<a name="agent.Curiosity"></a>
-## Curiosity Objects
-
-```python
-class Curiosity(Motivation)
-```
-
-This class extends Motivation and creates a curious motivation for an agent
-
-<a name="agent.Curiosity.get_from_position"></a>
-#### get\_from\_position
-
-```python
- | get_from_position(position: Tuple[int])
-```
-
-Implements the abstract method from Motivation. Gets the next position from the current position
-
-<a name="agent.Random"></a>
-## Random Objects
-
-```python
-class Random(Motivation)
-```
-
-This class extends Motivation, and randomly selects a position based on what is available
-
-<a name="agent.Random.get_from_position"></a>
-#### get\_from\_position
-
-```python
- | get_from_position(position: Tuple[int])
-```
-
-Implements the abstract method from Motivation. Gets the next position from the current position
-
-<a name="agent.Linear"></a>
-## Linear Objects
-
-```python
-class Linear(Motivation)
-```
-
-This class extends Motivation, and is designed to move on a linear path
-
-<a name="agent.Linear.get_from_position"></a>
-#### get\_from\_position
-
-```python
- | get_from_position(position: Tuple[int])
-```
-
-Implements the abstract method from Motivation. Gets the next position from the current position
-
-<a name="agent.Agent"></a>
-## Agent Objects
-
-```python
-class Agent()
-```
-
-This abtracts the motivation away so that we can iterate over them later
-
-<a name="agent.Agent.step"></a>
-#### step
-
-```python
- | step()
-```
-
-This performs a simple step for the agent, moving it from one position to the next
-
-<a name="testing"></a>
-# testing
-
-<a name="priority_based_memory"></a>
-# priority\_based\_memory
-
-<a name="priority_based_memory.PriorityBasedMemory"></a>
-## PriorityBasedMemory Objects
-
-```python
-class PriorityBasedMemory(BaseMemory)
-```
-
-Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
-Low novelty corresponds to higher priority (also makes it easier to remove the experience).
-
-<a name="priority_based_memory.PriorityBasedMemory.push"></a>
-#### push
-
-```python
- | push(data: Experience)
-```
-
-Add an experience to memory
-
-Args
-    data : Experience  
-        An experience to add. If full, experiences that are less novel are removed (forgotten).
+Create the network for input size of (128, 128, 1)
 
 <a name="brain"></a>
 # brain
@@ -698,82 +770,4 @@ Train the network to learn new features from memory
 **Returns**:
 
   The current average loss from the last training epoch
-
-<a name="map"></a>
-# map
-
-<a name="map.Map"></a>
-## Map Objects
-
-```python
-class Map()
-```
-
-Map class that creates instances of the terrain map that the model will work on
-
-Methods
-
-`__init__(filepath: str, fov: int, sqrtGrains: int` 
-	initialize an instance of the given map and store fov and sqrtGrains
-
-`get_fov(position: tuple)` 
-	returns a list of grains (sub-images) with radius fov given the position of the model on the map
-
-`clean_directions(coordinates: list)` 
-	return a boolean list that corresponds to whether the model can move to the coordinates specified by the argument
-
-<a name="map.Map.__init__"></a>
-#### \_\_init\_\_
-
-```python
- | __init__(filepath: str, fov: int, sqrtGrains: int)
-```
-
-**Arguments**:
-
-  
-- `filepath` - the stringpath containing the input terrain map -- can be a jpg or png
-- `fov` - an int radius of the field-of-view
-- `sqrtGrains` - The square root of the number of grains (sub-squares) in the fov -- an int
-  
-  
-
-**Returns**:
-
-  
-  A Map object with:
-  
-  The image from filepath (in greyscale),
-  fov,
-  sqrtGrains
-
-<a name="map.Map.get_fov"></a>
-#### get\_fov
-
-```python
- | get_fov(position: tuple)
-```
-
-Parameter:
-position: Position of the rover on the map -- a tuple expected in (column, row)
-
-**Returns**:
-
-  
-  A list of the grains that have been split from the img with radius fov, i.e.
-  the legal squares that the rover can go to in fov steps
-
-<a name="map.Map.clean_directions"></a>
-#### clean\_directions
-
-```python
- | clean_directions(coordinates: list)
-```
-
-Parameter:
-coordinates: A list of tuples that represent coordinates
-
-**Returns**:
-
-  A boolean list corresponding to each coordinate that indicates whether the model can move to that coordinate
 

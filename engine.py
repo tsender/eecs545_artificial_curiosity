@@ -38,6 +38,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
     None
     """
 
+    print("Saving plots...")
     # Doesn't spend the time making the charts unless the user wants it
     if(show or save):
         # Create one large image with all agents at once
@@ -58,7 +59,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
         for agent in agent_lst:
             # Splits x and y into separate lists (technically tuples)
             x, y = zip(*agent.history)
-            print(x, "\n\n\n")
+            # print(x, "\n\n\n")
             # Plot those points on the graph. The lines are transparent because
             # sometimes the agents cross over each other and you still want to
             # see the paths of those underneath
@@ -119,7 +120,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
                 plt.show()
 
 
-def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, saveGraph: bool = False, saveLocation: bool = True, dirname: str = None):
+def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = False, save_location: bool = True, dirname: str = None):
     """Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
     
     Params
@@ -139,7 +140,7 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
     show: bool=True
         Whether the graphs should be displayed
 
-    saveGraph: bool
+    save_graph: bool
         Whether the plots should be saved to the disk or not
 
     saveLoction: bool
@@ -157,7 +158,7 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
 
     # Make sure that the parameters are valid
     assert len(motivation_lst) == len(position_lst)
-    assert (saveGraph == False and saveLocation == False) or dirname is not None
+    assert (save_graph == False and save_location == False) or dirname is not None
 
     agent_lst = []
 
@@ -189,11 +190,11 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
         current_agent_id += 1
 
     # Graph the agent's paths
-    plot_paths(map, agent_lst, show, saveGraph, dirname)
+    plot_paths(map, agent_lst, show, save_graph, dirname)
 
     os.makedirs(dirname, exist_ok=True)
 
-    save_agent_data(agent_lst, saveLocation, dirname)
+    save_agent_data(agent_lst, save_location, dirname)
 
 
 def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
@@ -209,7 +210,7 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
         Save the agent's path data or not
     
     dirname: str
-        THe directory name where the csv file will be saved
+        The directory name where the csv file will be saved
 
     Returns:
     ------
@@ -223,7 +224,7 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
             fields = ['x', 'y']
             # Change the Agent's name into a valid filename
             filename = str(agent).replace(" ", "_").replace(
-                "(", "").replace(")", "").replace(",", "_") + '_{}_path_record'.format(time.time())
+                "(", "").replace(")", "").replace(",", "_") #+ '_{}_path_record'.format(time.time())
 
             os.makedirs(dirname, exist_ok=True)
             # Save the coordinates to a file
@@ -281,7 +282,7 @@ if __name__ == "__main__":
     fov = 64 # Allowed FOVs = {32, 64, 128}
     map = Map('data/mars.png', fov, 2)
 
-    brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
-    motivations = [Random(map=map)]
+    brain = Brain(PriorityBasedMemory(64), (fov,fov,1), novelty_loss_type='MSE', train_epochs_per_iter=1)
+    motivations = [Random(map=map, rate=8)]
     positions = [(2000,1000)] # (2000, 1000)]
-    run_experiment(motivations, positions, map, 100, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")
+    run_experiment(motivations, positions, map, 100, save_location=True, save_graph=True, show=False, dirname="output_dir")

@@ -12,20 +12,23 @@ import networks
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class Brain:
-    def __init__(self, memory: BaseMemory, img_size: Tuple, nov_thresh: float = 0.25, novelty_loss_type: str = 'MSE', train_epochs_per_iter: int = 1):
+    def __init__(self, memory: BaseMemory, img_size: Tuple, nov_thresh: float = 0.25, 
+                novelty_loss_type: str = 'MSE', train_epochs_per_iter: int = 1, learning_rate: float = 0.001):
         """Initializes the Brain by creating CNN and AE
         
         Args:
-        memory: BaseMemory
-            A memory object that implements BaseMemory  (such as PriorityBasedMemory)
-        img_size: Tuple
-            The image size of each grain from the agent's field of view
-        nov_thresh : float
-            (Currently deprecated). The novelty cutoff used in training
-        novelty_loss_type: str
-            A string indicating which novelty function to use (MSE or MAE)
-        train_epochs_per_iter: int
-            Number of epochs to train for in a single training session
+            memory: BaseMemory
+                A memory object that implements BaseMemory  (such as PriorityBasedMemory)
+            img_size: Tuple
+                The image size of each grain from the agent's field of view
+            nov_thresh : float
+                (Currently deprecated). The novelty cutoff used in training
+            novelty_loss_type: str
+                A string indicating which novelty function to use (MSE or MAE)
+            train_epochs_per_iter: int
+                Number of epochs to train for in a single training session
+            learning_rate: float
+                Learning rate for neural network optimizer
         """
         
         assert train_epochs_per_iter > 0
@@ -35,6 +38,8 @@ class Brain:
         self._train_epochs_per_iter = train_epochs_per_iter
         self._nov_thresh = nov_thresh
         self._batch_size = 4
+        self._novelty_loss_type = novelty_loss_type
+        self._learning_rate = learning_rate
 
         self._loss_functions = { \
             "mae": tf.keras.losses.MeanAbsoluteError(), \
@@ -49,9 +54,22 @@ class Brain:
 
         # Create network and optimizer
         self._network = networks.create_network(img_size)
-        self._optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+        self._optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
         
         print("Initialized Brain")
+
+    def get_name(self):
+        """Returns the full descriptive name of the brain object.
+        
+        Returns
+            The name of the brain object as a string
+        """
+        name_str = "Brain"
+        name_str += "_" + self._memory.get_name() 
+        name_str += "_ImgSize" + str(self._img_size[0])
+        name_str += "_Nov" + self._novelty_loss_type.upper()
+        name_str += "_Lrate" + str(self._learning_rate)
+        return name_str
 
     # def _init_CNN(self):
     #     """Initialize the Convolutional Neural Network"""
@@ -216,6 +234,7 @@ if __name__ == "__main__":
     brain1 = Brain(ListBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)
     brain2 = Brain(PriorityBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)
 
+    print(brain2.get_name())
     grain_nov = brain2.add_grains([
         [img, img],
         [img, img]

@@ -111,7 +111,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
 
             # Save the image if desired
             if(save):
-                # get rid of all of the characters we don't want in a fipe path
+                # get rid of all of the characters we don't want in a file path
                 filename = str(agent).replace(" ", "_").replace(
                     "(", "").replace(")", "").replace(",", "_")
                 # Save the file
@@ -194,6 +194,9 @@ def run_agent_experiment(motivation_lst: List[Motivation], position_lst: List[Tu
     os.makedirs(dirname, exist_ok=True)
 
     save_agent_data(agent_lst, dirname)
+
+def run_experiments():
+    pass
 
 
 def save_agent_data(agent_lst: List[Agent], dirname: str):

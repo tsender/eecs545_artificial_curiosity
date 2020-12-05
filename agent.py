@@ -94,7 +94,8 @@ class Curiosity(Motivation):
         return pos
 
     def __str__(self):
-        return "Curiosity"
+        return "Curiosity_" + self._brain.get_name()
+
 
 class Random(Motivation):
     """This class extends Motivation, and randomly selects a position based on what is available"""
@@ -212,7 +213,7 @@ class Agent:
         self.position = new_position
 
     def __str__(self):
-        return "{} Agent ({},{})".format(self._motivation, self.history[0][0], self.history[0][1])
+        return F"{self._motivation}_Agent_@{self.history[0][0]}_{self.history[0][1]}"
 
 
 if __name__ == "__main__":
@@ -224,3 +225,5 @@ if __name__ == "__main__":
     print(Curiosity(map=map, brain=brain).get_from_position((fov, fov)))
     print(Random(map=map).get_from_position((fov, fov)))
     print(Linear(map=map).get_from_position((fov, fov)))
+    agent = Agent(Curiosity(map=map, brain=brain))
+    print(str(agent))

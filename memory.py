@@ -39,6 +39,15 @@ class BaseMemory(metaclass=abc.ABCMeta):
         """
         pass
 
+    @abc.abstractmethod
+    def get_name(self):
+        """Returns the name of the memory object.
+        
+        Returns
+            The name of the memory object as a string
+        """
+        pass
+
     def as_list(self) -> List[Experience]:
         """ Returns a copy of the current memory
 
@@ -46,6 +55,9 @@ class BaseMemory(metaclass=abc.ABCMeta):
             A list of Experience objects
         """
         return self._memory.copy()
+
+    def get_max_length(self):
+        return self._max_length
 
     def __str__(self):
         return str(vars(self))
@@ -75,6 +87,15 @@ class PriorityBasedMemory(BaseMemory):
         elif(data > self._memory[0]):
             heapq.heappushpop(self._memory, data) # New data must be more interesting than the least interesting experience
 
+    def get_name(self):
+        """Returns the full descriptive name of the memory object.
+        
+        Returns
+            The name of the memory object as a string
+        """
+        return "PriorityMem" + str(self._max_length)
+
+
 class ListBasedMemory(BaseMemory):
     """
     Memory class that uses a simple fixed-length list to store the latest experiences.
@@ -94,6 +115,14 @@ class ListBasedMemory(BaseMemory):
         self._memory.append(data)
         if(len(self._memory) > self._max_length):
             self._memory.pop(0)
+
+    def get_name(self):
+        """Returns the full descriptive name of the memory object.
+        
+        Returns
+            The name of the memory object as a string
+        """
+        return "ListMem" + str(self._max_length)
 
 if __name__ == "__main__":
     print("Priority Based Memory")
@@ -120,3 +149,5 @@ if __name__ == "__main__":
 
     for i in m.as_list():
         print(i.novelty)
+
+    print(m.get_name())

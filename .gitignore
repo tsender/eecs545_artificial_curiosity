@@ -146,8 +146,8 @@ cython_debug/
 .ipython
 .ipynb
 .python_history
-*.svg
+# *.svg
 .bash*
 .conda
 .DS_STORE
-*.csv
+# *.csv

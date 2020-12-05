@@ -1,13 +1,16 @@
 list_map = map
 
 from typing import Tuple, List
-from map import Map
-from agent import Agent, Curiosity, Linear, Random, Motivation
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import csv
 import time
 import os
+
+from map import Map
+from agent import Agent, Curiosity, Linear, Random, Motivation
+from memory import PriorityBasedMemory, ListBasedMemory
+from brain import Brain
 
 
 # TODO: Might want to make more efficient so that graphing doesn't take so long
@@ -85,7 +88,6 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
             plt.show()
 
         # Create multiple plots with one agent each
-
         for agent in agent_lst:
             # Create a plot, same as before but shaped a little differently because
             # we don't have the legend
@@ -120,8 +122,8 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
                 plt.show()
 
 
-def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = False, save_location: bool = True, dirname: str = None):
-    """Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
+def run_agent_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = True, dirname: str = "results"):
+    """Runs an experiment on the motication given, then handles plotting and saving data.
     
     Params
     ------
@@ -142,9 +144,6 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
 
     save_graph: bool
         Whether the plots should be saved to the disk or not
-
-    saveLoction: bool
-        Whether the agent's position should be save to the disk
 
     dirname: str=None
         The directory in which the graphs will be stored
@@ -194,10 +193,10 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
 
     os.makedirs(dirname, exist_ok=True)
 
-    save_agent_data(agent_lst, save_location, dirname)
+    save_agent_data(agent_lst, dirname)
 
 
-def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
+def save_agent_data(agent_lst: List[Agent], dirname: str):
     """
     Save the path record of each agent as a csv file
     
@@ -205,9 +204,6 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
     ------
     agent_lst: List[Agent]
         A list of agent whose path coordinates to be saved
-    
-    save: bool
-        Save the agent's path data or not
     
     dirname: str
         The directory name where the csv file will be saved
@@ -218,25 +214,22 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
     """
 
     # Iterates over all of the agents
-    if save:
-        # Save the agent's path
-        for agent in agent_lst:
-            fields = ['x', 'y']
-            # Change the Agent's name into a valid filename
-            filename = str(agent).replace(" ", "_").replace(
-                "(", "").replace(")", "").replace(",", "_") #+ '_{}_path_record'.format(time.time())
+    # Save the agent's path
+    for agent in agent_lst:
+        fields = ['x', 'y']
+        # Change the Agent's name into a valid filename
+        filename = str(agent).replace(" ", "_").replace(
+            "(", "").replace(")", "").replace(",", "_") #+ '_{}_path_record'.format(time.time())
 
-            os.makedirs(dirname, exist_ok=True)
-            # Save the coordinates to a file
-            with open(dirname + '/' + filename + '.csv', 'w', newline='') as f:
-                wr = csv.writer(f)
-                wr.writerow(fields)
-                wr.writerows(agent.history)
+        os.makedirs(dirname, exist_ok=True)
+        # Save the coordinates to a file
+        with open(dirname + '/' + filename + '.csv', 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(fields)
+            writer.writerows(agent.history)
 
-        # Save the agent's novelty
+    # Save the agent's novelty
         
-
-
 def load_agent_data(path: str):
     """
     Loads information from a given file. This will not be used as part of the engine.
@@ -277,12 +270,11 @@ def load_agent_data(path: str):
     return list(list_map(lambda x: tuple(list_map(int, x)), lst_content[1:]))
 
 if __name__ == "__main__":
-    from memory import PriorityBasedMemory, ListBasedMemory
-    from brain import Brain
+    
     fov = 64 # Allowed FOVs = {32, 64, 128}
     map = Map('data/mars.png', fov, 2)
 
     brain = Brain(PriorityBasedMemory(64), (fov,fov,1), novelty_loss_type='MSE', train_epochs_per_iter=1)
     motivations = [Random(map=map, rate=8)]
     positions = [(2000,1000)] # (2000, 1000)]
-    run_experiment(motivations, positions, map, 100, save_location=True, save_graph=True, show=False, dirname="output_dir")
+    run_agent_experiment(motivations, positions, map, 100, save_graph=True, show=False, dirname="output_dir")

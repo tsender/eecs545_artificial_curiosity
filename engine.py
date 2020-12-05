@@ -1,9 +1,14 @@
+list_map = map
+
 from typing import Tuple, List
 from map import Map
 from agent import Agent, Curiosity, Linear, Random, Motivation
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import csv
+import time
+import os
+
 
 # TODO: Might want to make more efficient so that graphing doesn't take so long
 
@@ -70,6 +75,7 @@ def plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname
         # Save the image if they want it
         # NOTE: I chose svg because it retains its high wuality while being a relatively small file
         if(save):
+            os.makedirs(dirname, exist_ok=True)
             plt.savefig("{}/all.svg".format(dirname))
 
         # Show it if they want it
@@ -185,6 +191,8 @@ def run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[in
     # Graph the agent's paths
     plot_paths(map, agent_lst, show, saveGraph, dirname)
 
+    os.makedirs(dirname, exist_ok=True)
+
     save_agent_data(agent_lst, saveLocation, dirname)
 
 
@@ -209,18 +217,23 @@ def save_agent_data(agent_lst: List[Agent], save: bool, dirname: str):
     """
 
     # Iterates over all of the agents
-    for agent in agent_lst:
-        if save:
+    if save:
+        # Save the agent's path
+        for agent in agent_lst:
             fields = ['x', 'y']
             # Change the Agent's name into a valid filename
             filename = str(agent).replace(" ", "_").replace(
-                "(", "").replace(")", "").replace(",", "_") + '_path_record'
+                "(", "").replace(")", "").replace(",", "_") + '_{}_path_record'.format(time.time())
 
+            os.makedirs(dirname, exist_ok=True)
             # Save the coordinates to a file
             with open(dirname + '/' + filename + '.csv', 'w', newline='') as f:
                 wr = csv.writer(f)
                 wr.writerow(fields)
                 wr.writerows(agent.history)
+
+        # Save the agent's novelty
+        
 
 
 def load_agent_data(path: str):
@@ -260,7 +273,7 @@ def load_agent_data(path: str):
 
     # Changing the rows from lists of strings to tuples of ints
     # (and also removing the headers)
-    return list(map(lambda x: tuple(map(int, x)), lst_content[1:]))
+    return list(list_map(lambda x: tuple(list_map(int, x)), lst_content[1:]))
 
 if __name__ == "__main__":
     from memory import PriorityBasedMemory, ListBasedMemory
@@ -269,6 +282,6 @@ if __name__ == "__main__":
     map = Map('data/mars.png', fov, 2)
 
     brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
-    motivations = [Random(map=map), Linear(map=map)] # Curiosity(map=map, brain=brain)]
-    positions = [(2000,1000), (2000, 1000)] # (2000, 1000)]
-    run_experiment(motivations, positions, map, 100000, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")
+    motivations = [Random(map=map)]
+    positions = [(2000,1000)] # (2000, 1000)]
+    run_experiment(motivations, positions, map, 100, saveLocation=True, saveGraph=True, show=False, dirname="./output_dir")

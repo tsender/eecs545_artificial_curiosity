@@ -426,7 +426,7 @@ None
 #### run\_experiment
 
 ```python
-run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, saveGraph: bool = False, saveLocation: bool = True, dirname: str = None)
+run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = False, save_location: bool = True, dirname: str = None)
 ```
 
 Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
@@ -448,7 +448,7 @@ iterations: int
 show: bool=True
     Whether the graphs should be displayed
 
-saveGraph: bool
+save_graph: bool
     Whether the plots should be saved to the disk or not
 
 saveLoction: bool
@@ -480,7 +480,7 @@ save: bool
 Save the agent's path data or not
 
 dirname: str
-THe directory name where the csv file will be saved
+The directory name where the csv file will be saved
 
 **Returns**:
 

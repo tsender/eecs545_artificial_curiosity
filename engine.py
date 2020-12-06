@@ -272,7 +272,7 @@ def run_experiments(map: Map, num_starting_positions):
                             # Must call clear_session to reset the global state and avoid memory clutter for the GPU
                             tf.keras.backend.clear_session()
 
-                            print(F"\nCurious Agent {cur_agent_num}/{num_curious_agents_per_pos} at Pos {p}/{num_starting_positions}:")
+                            print(F"\nCurious Agent {cur_agent_num}/{num_curious_agents_per_pos} at Pos {p}/{num_starting_positions} {pos}:")
                             
                             brain = Brain(mem(mem_len), grain_size, novelty_loss_type=nov_type,
                                             train_epochs_per_iter=train_epochs, learning_rate=lr)

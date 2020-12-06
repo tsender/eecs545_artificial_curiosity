@@ -148,7 +148,6 @@ class Map:
         if(greyscale):
             self.img = self.img.convert('L')
 
-
     def _in_map(self, position: Tuple[int]):
         """
         Determines whether the given position is in the map or not.

@@ -56,7 +56,7 @@ class Brain:
         self._network = networks.create_network(img_size)
         self._optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
         
-        print("Initialized Brain")
+        # print("Initialized Brain")
 
     def get_name(self):
         """Returns the full descriptive name of the brain object.
@@ -68,6 +68,7 @@ class Brain:
         name_str += "_" + self._memory.get_name() 
         name_str += "_ImgSize" + str(self._img_size[0])
         name_str += "_Nov" + self._novelty_loss_type.upper()
+        name_str += "_Train" + str(self._train_epochs_per_iter)
         name_str += "_Lrate" + str(self._learning_rate)
         return name_str
 

@@ -1,13 +1,13 @@
 # Need this because the name map is taken by the actual map
 lst_map = map
 
-from artificial_curiosity_types import Artificial_Curiosity_Types as act
 from typing import Tuple, List
 import abc
-from brain import Brain
-from map import Map
 import random
 
+from brain import Brain
+from map import Map
+import evaluate
 
 # Abstract Class
 class Motivation(metaclass=abc.ABCMeta):
@@ -49,6 +49,9 @@ class Curiosity(Motivation):
         # TODO: These are not optimal, they have been set for testing purposes
         self._brain = brain
         self.rate = rate
+
+    def get_map(self):
+        return self._map
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -105,6 +108,9 @@ class Random(Motivation):
         self._map = map
         self.rate = rate
 
+    def get_map(self):
+        return self._map
+
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
 
@@ -141,6 +147,9 @@ class Linear(Motivation):
         # Chooses a random direction to move in
         self.direction = (random.randint(0, 1), random.randint(0, 1))
         self.rate = rate
+
+    def get_map(self):
+        return self._map
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -212,18 +221,25 @@ class Agent:
         # Update its position based on the new position
         self.position = new_position
 
+    def get_path_novelty(self):
+        images = evaluate.load_from_map(self._motivation.get_map(), self.history)
+        return evaluate.avg_pixelwise_var(images)
+
     def __str__(self):
-        return F"{self._motivation}_Agent_@{self.history[0][0]}_{self.history[0][1]}"
+        return F"{self._motivation}_Agent_Pos_{self.history[0][0]}_{self.history[0][1]}"
 
 
 if __name__ == "__main__":
     from memory import PriorityBasedMemory, ListBasedMemory
     fov = 64 # Allowed FOVs = {32, 64, 128}
-    map = Map('data/x.jpg', fov, 2)
+    map = Map('data/mars.png', fov, 2)
 
     brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
     print(Curiosity(map=map, brain=brain).get_from_position((fov, fov)))
     print(Random(map=map).get_from_position((fov, fov)))
     print(Linear(map=map).get_from_position((fov, fov)))
-    agent = Agent(Curiosity(map=map, brain=brain))
-    print(str(agent))
+
+    agent = Agent(Curiosity(map=map, brain=brain), (2000,1000))
+    agent.step()
+    print("novelty")
+    print(agent.get_path_novelty())

@@ -3,8 +3,9 @@
 map_function = map
 
 from typing import List, Tuple
+import numpy as np
+
 from map import Map
-import numpy as np   
 
 def load_from_map(map: Map, positions: List[Tuple[int]]):
     """

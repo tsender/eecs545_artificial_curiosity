@@ -14,9 +14,7 @@ from agent import Agent, Curiosity, Linear, Random, Motivation
 from memory import PriorityBasedMemory, ListBasedMemory
 from brain import Brain
 
-
 # TODO: Might want to make more efficient so that graphing doesn't take so long
-
 
 def plot_paths(map: Map, agent_list: List[Agent], show: bool, save: bool, dirname: str):
     """Plots out the paths of the agents on the map
@@ -113,41 +111,25 @@ def plot_paths(map: Map, agent_list: List[Agent], show: bool, save: bool, dirnam
 
             # Save the image if desired
             if(save):
-                # get rid of all of the characters we don't want in a file path
-                # filename = str(agent).replace(" ", "_").replace(
-                #     "(", "").replace(")", "").replace(",", "_")
-                # Save the file
                 plt.savefig("{}/{}.svg".format(dirname, str(agent)))
 
             # Show the image if desired
             if(show):
                 plt.show()
+        plt.close('all')
 
 
-def run_agents(agent_list: List[Agent], map: Map, iterations: int, show: bool = True, save_graph: bool = True, novelty_filename: str = "results/novelty.txt", dirname: str = "results"):
-    """Runs an experiment on the motication given, then handles plotting and saving data.
+def run_agents(agent_list: List[Agent], path_length: int):
+    """Runs an experiment on the provided agents.
     
     Params
     ------
     agent_list: List[Agent]
         A list of Agent instances to be ran
-
-    map: Map
-        An instance of the Map class that will be used by the agent to handle directions, and for the plotting
     
-    iterations: int
+    path_length: int
         The number of steps that each agent should take.
 
-    show: bool=True
-        Whether the graphs should be displayed
-
-    save_graph: bool
-        Whether the plots should be saved to the disk or not
-
-    dirname: str=None
-        The directory in which the graphs will be stored
-
-    
     Returns
     -------
     None
@@ -156,7 +138,6 @@ def run_agents(agent_list: List[Agent], map: Map, iterations: int, show: bool = 
 
     # Make sure that the parameters are valid
     assert agent_list is not None and len(agent_list) > 0
-    assert save_graph == False or dirname is not None
 
     progress_bar_width = 50
     num_agents = len(agent_list)
@@ -165,7 +146,8 @@ def run_agents(agent_list: List[Agent], map: Map, iterations: int, show: bool = 
     for agent in agent_list:
         # print(F"Running agent: {str(agent)}")
         t_start = time.time()
-        for i in range(iterations):
+        for i in range(path_length):
+            p = i+1
             # Error handling in case something goes wrong
             try:
                 agent.step()
@@ -175,23 +157,16 @@ def run_agents(agent_list: List[Agent], map: Map, iterations: int, show: bool = 
                 print(e)
                 return
             t_elapsed = time.time() - t_start
-            agent_eta = (t_elapsed / (i+1)) * (iterations - i)
+            agent_eta = (t_elapsed / p) * (path_length - p)
             agent_eta_str = get_time_str(agent_eta)
         
             # Update progress bar for agent
-            frac = (i+1) / float(iterations)
+            frac = p / float(path_length)
             left = int(progress_bar_width * frac)
             right = progress_bar_width - left
-            print(f'\rAgent {current_agent_id}/{num_agents} Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}% ETA: {agent_eta_str}', sep='', end='', flush=True)
+            print(f'\rAgent {current_agent_id}/{num_agents} Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}% ETR: {agent_eta_str}', sep='', end='', flush=True)
         print("") # Moves carriage to next line
         current_agent_id += 1
-
-    # Graph the agent's paths
-    plot_paths(map, agent_list, show, save_graph, dirname)
-
-    os.makedirs(dirname, exist_ok=True)
-
-    save_agent_data(agent_list, novelty_filename, dirname)
 
 def run_experiments(map: Map, num_starting_positions):
     """Run a series of experiments. Generate Random, Linear, and Curiosity agents for each starting position.
@@ -205,6 +180,8 @@ def run_experiments(map: Map, num_starting_positions):
     fov = 64
     grain_size = (fov, fov, 1)
     move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
+    show = False
+    save_plots = False
 
     # Defines the different possible parameters used when creating the various brains
     brain_config = {}
@@ -213,6 +190,11 @@ def run_experiments(map: Map, num_starting_positions):
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
     brain_config['train_epochs_per_iter'] = [1, 2, 3, 4]
     brain_config['learning_rate'] = [0.001, 0.0005]
+
+    # Calculate number of different curious agents per position
+    num_curious_agents_per_pos = 1
+    for _,v in brain_config.items():
+        num_curious_agents_per_pos *= len(v)
 
     # Get range of possible (x,y) pairs. Subtract 2 since I don't quite know the whole usable range given the agent's size.
     x_range = (map.fov + 2, map.img.size[0] - fov - 2)
@@ -231,17 +213,17 @@ def run_experiments(map: Map, num_starting_positions):
 
     # Create results directories
     print("Creating directories and novelty files...")
-    results_dirs = []
+    result_dirs = []
     novelty_filenames = []
     for pos in position_list:
         dir = "pos_" + str(pos[0]) + "_" + str(pos[1])
         dir = os.path.join(base_results_dir, dir)
-        results_dirs.append(dir)
+        result_dirs.append(dir)
 
         if not os.path.isdir(dir):
             os.makedirs(dir)
 
-        # Create novelty files, one for each position
+        # Create novelty files, one for each position folder
         nov_file = "novelty_" + str(pos[0]) + "_" + str(pos[1]) + ".txt"
         nov_file = os.path.join(dir, nov_file)
         novelty_filenames.append(nov_file)
@@ -259,13 +241,31 @@ def run_experiments(map: Map, num_starting_positions):
         rand_motiv = Random(map, rate=move_rate)
         random_agents.append(Agent(rand_motiv, pos))
 
-    print("Running Linear/Random agents...")
+    # Run Linear agents
+    print("Running Linear agents...")
+    for i in range(num_starting_positions):
+        print(F"\nLinear Agent {i+1}/{num_starting_positions}:")
+        run_agents([linear_agents[i]], path_length)
+        save_and_plot([linear_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
+
+    # Run Random agents
+    print("Running Random agents...")
+    for i in range(num_starting_positions):
+        print(F"\nRandom Agent {i+1}/{num_starting_positions}:")
+        run_agents([random_agents[i]], path_length)
+        save_and_plot([random_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
 
     # Curiosity Agents
     print("Creating/running Curiosity agents...")
-    curiosity_agents = []
-    for pos in position_list:
-        print(pos)
+    cur_agent_num = 1
+    start_time = time.time()
+    for i in range(num_starting_positions):
+        p = i+1
+        pos = position_list[i]
+        pos_start_time = time.time()
+        pos_eta = 0.2 * num_curious_agents_per_pos # Some initial estimate
+        pos_eta_str = get_time_str(pos_eta)
+
         for mem in brain_config['memory_type']:
             for mem_len in brain_config['memory_length']:
                 for nov_type in brain_config['novelty_loss_type']:
@@ -274,42 +274,59 @@ def run_experiments(map: Map, num_starting_positions):
                             # Must call clear_session to reset the global state and avoid memory clutter for the GPU
                             tf.keras.backend.clear_session()
 
+                            print(F"\nCurious Agent {cur_agent_num}/{num_curious_agents_per_pos} at Pos {p}/{num_starting_positions}:")
+                            
                             brain = Brain(mem(mem_len), grain_size, novelty_loss_type=nov_type,
                                             train_epochs_per_iter=train_epochs, learning_rate=lr)
-                            cur_motiv = Curiosity(map, brain, rate=move_rate)
-                            cur_agent = Agent(cur_motiv, pos)
+                            curious_motiv = Curiosity(map, brain, rate=move_rate)
+                            curious_agent = Agent(curious_motiv, pos)
 
-def save_agent_data(agent_list: List[Agent], novelty_filename: str, dirname: str):
+                            run_agents([curious_agent], path_length)
+                            save_and_plot([curious_agent], novelty_filenames[i], result_dirs[i], show, save_plots)
+
+                            # Print estimated time remaining
+                            wall_time = time.time() - start_time
+                            pos_wall_time = time.time() - pos_start_time
+                            pos_eta = (pos_wall_time / p) * (num_curious_agents_per_pos - p)
+                            wall_time_str = get_time_str(wall_time)
+                            pos_eta_str = get_time_str(pos_eta)
+                            print(F"Wall Time: {wall_time_str}, Position ETR: {pos_eta_str}")
+
+def save_and_plot(agent_list: List[Agent], novelty_filename: str, dirname: str, show: bool = False, save_plots: bool = True):
     """
-    Save the path record of each agent as a csv file
+    Save the path record of each agent as a csv file, save the novelty to a .txt file, and plot and save graphs.
+    Note: When plotting, it will assume all agents use the same map.
     
     Params:
     ------
     agent_list: List[Agent]
         A list of agent whose path coordinates to be saved
 
-    agent_list: List[Agent]
-        A list of agent whose path coordinates to be saved
+    novelty_filename: str
+        The filename for storing the agents' novelty
     
     dirname: str
         The directory name where the csv file will be saved
+
+    show: bool
+        Whether the graphs should be displayed
+
+    save_plots: bool
+        Whether the plots should be saved to the disk or not
 
     Returns:
     ------
     None
     """
 
-    # Iterates over all of the agents
     # Save the agent's path
+    print("Saving data...")
+    os.makedirs(dirname, exist_ok=True)
     for agent in agent_list:
         fields = ['x', 'y']
-        # Change the Agent's name into a valid filename
-        # filename = str(agent).replace(" ", "_").replace(
-        #     "(", "").replace(")", "").replace(",", "_") #+ '_{}_path_record'.format(time.time())
-
-        os.makedirs(dirname, exist_ok=True)
-        # Save the coordinates to a file
-        with open(dirname + '/' + str(agent) + '.csv', 'w', newline='') as f:
+        
+        # Save the path coordinates to a file
+        with open(dirname + '/' + str(agent) + "_path_record" + '.csv', 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(fields)
             writer.writerows(agent.history)
@@ -317,6 +334,8 @@ def save_agent_data(agent_list: List[Agent], novelty_filename: str, dirname: str
         # Save the agent's novelty
         with open(novelty_filename, "a") as f:
             f.write(str(agent) + ": " + str(agent.get_path_novelty()) + "\n")
+
+    plot_paths(agent_list[0].get_map(), agent_list, show, save_plots, dirname)
         
 def load_agent_data(path: str):
     """
@@ -337,6 +356,9 @@ def load_agent_data(path: str):
         Returns a list of x and y coordinates
 
     """
+
+    # NOTE: Ted suggests you add a method inside the Agent class to reload the agent history since several functions
+    # in engine.py reference agent.history
 
     # Makes sure that the path is given and that the file is a csv file
     assert path != None and path.split(".")[-1] == "csv"
@@ -385,7 +407,8 @@ if __name__ == "__main__":
     # brain = Brain(PriorityBasedMemory(64), (fov,fov,1), novelty_loss_type='MSE', train_epochs_per_iter=1)
     # agent = Agent(Curiosity(map=map, brain=brain, rate=8), pos)
     # novelty_filename = "output_dir/novelty.txt"
-    # run_agents([agent], map, 100, save_graph=True, show=False, novelty_filename=novelty_filename, dirname="output_dir")
+    # run_agents([agent], 100)
+    # save_and_plot([agent], "output_dir/novelty.txt", "output_dir")
 
-    number_starting_positions = 10
-    run_experiments(map, number_starting_positions)
+    num_starting_positions = 10
+    run_experiments(map, num_starting_positions)

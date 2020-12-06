@@ -221,8 +221,11 @@ class Agent:
         # Update its position based on the new position
         self.position = new_position
 
+    def get_map(self):
+        return self._motivation.get_map()
+
     def get_path_novelty(self):
-        images = evaluate.load_from_map(self._motivation.get_map(), self.history)
+        images = evaluate.load_from_map(self.get_map(), self.history)
         return evaluate.avg_pixelwise_var(images)
 
     def __str__(self):

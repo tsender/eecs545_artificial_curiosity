@@ -257,14 +257,12 @@ def run_experiments(map: Map, num_starting_positions):
 
     # Curiosity Agents
     print("Creating/running Curiosity agents...")
-    cur_agent_num = 1
     start_time = time.time()
     for i in range(num_starting_positions):
         p = i+1
         pos = position_list[i]
         pos_start_time = time.time()
-        pos_eta = 0.2 * num_curious_agents_per_pos # Some initial estimate
-        pos_eta_str = get_time_str(pos_eta)
+        cur_agent_num = 1
 
         for mem in brain_config['memory_type']:
             for mem_len in brain_config['memory_length']:
@@ -287,10 +285,12 @@ def run_experiments(map: Map, num_starting_positions):
                             # Print estimated time remaining
                             wall_time = time.time() - start_time
                             pos_wall_time = time.time() - pos_start_time
-                            pos_eta = (pos_wall_time / p) * (num_curious_agents_per_pos - p)
+                            pos_eta = (pos_wall_time / cur_agent_num) * (num_curious_agents_per_pos - cur_agent_num)
                             wall_time_str = get_time_str(wall_time)
                             pos_eta_str = get_time_str(pos_eta)
                             print(F"Wall Time: {wall_time_str}, Position ETR: {pos_eta_str}")
+
+                            cur_agent_num += 1
 
 def save_and_plot(agent_list: List[Agent], novelty_filename: str, dirname: str, show: bool = False, save_plots: bool = True):
     """

@@ -197,13 +197,10 @@ class PlotResults():
 
     
 
-
-
 if __name__ == "__main__":
     fov = 64
-    # map = Map('data/mars.png', fov, 2) # use this path per commit
-    image_path = os.path.join(os.path.dirname(__file__), 'data') 
-    map = Map(image_path+'\mars.png', fov, 2)
+    image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
+    map = Map(image_path, fov, 2)
 
     ## initialize PlotResults class
     results_path = os.path.join(os.path.dirname(__file__), 'results') # results folder
@@ -218,8 +215,8 @@ if __name__ == "__main__":
         # analyze novelty
         ref_agent_nov, cur_agent_nov, cur_agent_nov_sort = plot_results.novelty_analysis(agent_nov)
         # plot novelty
-        plot_results.plot_novelty(agent_nov, ref_agent_nov, show=True, save=True)
+        plot_results.plot_novelty(agent_nov, ref_agent_nov, show=True, save=False)
         # plot path mat
-        plot_results.plot_paths_new(agent_path, cur_agent_nov_sort, ref_agent_nov, num_agents=5, show=True, save=True)
+        plot_results.plot_paths_new(agent_path, cur_agent_nov_sort, ref_agent_nov, num_agents=70, show=True, save=False)
 
     

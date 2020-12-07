@@ -422,14 +422,14 @@ Returns
 -------
 None
 
-<a name="engine.run_experiment"></a>
-#### run\_experiment
+<a name="engine.run_agent_experiment"></a>
+#### run\_agent\_experiment
 
 ```python
-run_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = False, save_location: bool = True, dirname: str = None)
+run_agent_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = True, dirname: str = "results")
 ```
 
-Runs an experiment on the motication given, then handles plotting and saving data. Agents are updated in a round-robin configuration, so each gets an ewual number of executions, and they all rpogress together.
+Runs an experiment on the motication given, then handles plotting and saving data.
 
 Params
 ------
@@ -451,9 +451,6 @@ show: bool=True
 save_graph: bool
     Whether the plots should be saved to the disk or not
 
-saveLoction: bool
-    Whether the agent's position should be save to the disk
-
 dirname: str=None
     The directory in which the graphs will be stored
 
@@ -466,7 +463,7 @@ None
 #### save\_agent\_data
 
 ```python
-save_agent_data(agent_lst: List[Agent], save: bool, dirname: str)
+save_agent_data(agent_lst: List[Agent], dirname: str)
 ```
 
 Save the path record of each agent as a csv file
@@ -475,9 +472,6 @@ Params:
 ------
 agent_lst: List[Agent]
 A list of agent whose path coordinates to be saved
-
-save: bool
-Save the agent's path data or not
 
 dirname: str
 The directory name where the csv file will be saved

@@ -175,7 +175,7 @@ def run_experiments(map: Map, num_starting_positions):
 
     # Some high-level parameters
     random.seed(12345)
-    base_results_dir = "results"
+    base_results_dir = "results2"
     path_length = 1000
     fov = 64
     grain_size = (fov, fov, 1)
@@ -188,8 +188,8 @@ def run_experiments(map: Map, num_starting_positions):
     brain_config['memory_type'] = [PriorityBasedMemory, ListBasedMemory]
     brain_config['memory_length'] = [32, 64]
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
-    brain_config['train_epochs_per_iter'] = [1, 2, 3, 4]
-    brain_config['learning_rate'] = [0.001, 0.0005]
+    brain_config['train_epochs_per_iter'] = [1, 2, 3]
+    brain_config['learning_rate'] = [0.0002, 0.0004]
 
     # Calculate number of different curious agents per position
     num_curious_agents_per_pos = 1
@@ -221,7 +221,7 @@ def run_experiments(map: Map, num_starting_positions):
         result_dirs.append(dir)
 
         if not os.path.isdir(dir):
-            os.makedirs(dir)
+            os.makedirs(dir, exist_ok=True)
 
         # Create novelty files, one for each position folder
         nov_file = "novelty_" + str(pos[0]) + "_" + str(pos[1]) + ".txt"
@@ -232,28 +232,40 @@ def run_experiments(map: Map, num_starting_positions):
     print("Creating Linear/Random agents...")
     linear_agents = []
     random_agents = []
-    for pos in position_list:
+    for i in range(num_starting_positions):
+        pos = position_list[i]
+
         # Lienar Agents
         linear_motiv = Linear(map, rate=move_rate)
-        linear_agents.append(Agent(linear_motiv, pos))
+        lin_agent = Agent(linear_motiv, pos)
+        data_dir = os.path.join(result_dirs[i], str(lin_agent))
+        lin_agent.set_data_dir(data_dir)
+        linear_agents.append(lin_agent)
         
         # Random Agents
         rand_motiv = Random(map, rate=move_rate)
-        random_agents.append(Agent(rand_motiv, pos))
+        rand_agent = Agent(rand_motiv, pos)
+        data_dir = os.path.join(result_dirs[i], str(rand_agent))
+        rand_agent.set_data_dir(data_dir)
+        random_agents.append(rand_agent)
 
     # Run Linear agents
     print("Running Linear agents...")
     for i in range(num_starting_positions):
         print(F"\nLinear Agent {i+1}/{num_starting_positions}:")
         run_agents([linear_agents[i]], path_length)
-        save_and_plot([linear_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
+        linear_agents[i].save_reconstruction_snapshot()
+        linear_agents[i].save_data()
+        # save_and_plot([linear_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
 
     # Run Random agents
     print("Running Random agents...")
     for i in range(num_starting_positions):
         print(F"\nRandom Agent {i+1}/{num_starting_positions}:")
         run_agents([random_agents[i]], path_length)
-        save_and_plot([random_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
+        random_agents[i].save_reconstruction_snapshot()
+        random_agents[i].save_data()
+        # save_and_plot([random_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
 
     # Curiosity Agents
     print("Creating/running Curiosity agents...")
@@ -270,6 +282,7 @@ def run_experiments(map: Map, num_starting_positions):
                     for train_epochs in brain_config['train_epochs_per_iter']:
                         for lr in brain_config['learning_rate']:
                             # Must call clear_session to reset the global state and avoid memory clutter for the GPU
+                            # Allows us to create more models without worrying about memory
                             tf.keras.backend.clear_session()
 
                             print(F"\nCurious Agent {cur_agent_num}/{num_curious_agents_per_pos} at Pos {p}/{num_starting_positions} {pos}:")
@@ -278,17 +291,24 @@ def run_experiments(map: Map, num_starting_positions):
                                             train_epochs_per_iter=train_epochs, learning_rate=lr)
                             curious_motiv = Curiosity(map, brain, rate=move_rate)
                             curious_agent = Agent(curious_motiv, pos)
+                            data_dir = os.path.join(result_dirs[i], str(curious_agent))
+                            curious_agent.set_data_dir(data_dir)
 
                             run_agents([curious_agent], path_length)
-                            save_and_plot([curious_agent], novelty_filenames[i], result_dirs[i], show, save_plots)
+                            curious_agent.save_reconstruction_snapshot()
+                            curious_agent.save_data()
+                            # save_and_plot([curious_agent], novelty_filenames[i], result_dirs[i], show, save_plots)
 
                             # Print estimated time remaining
                             wall_time = time.time() - start_time
                             pos_wall_time = time.time() - pos_start_time
                             pos_eta = (pos_wall_time / cur_agent_num) * (num_curious_agents_per_pos - cur_agent_num)
-                            wall_time_str = get_time_str(wall_time)
-                            pos_eta_str = get_time_str(pos_eta)
-                            print(F"Wall Time: {wall_time_str}, Position ETR: {pos_eta_str}")
+                            print(F"Position Wall Time: {get_time_str(pos_wall_time)}, Position ETR: {get_time_str(pos_eta)}")
+
+                            num_agents_tested = cur_agent_num + i*num_curious_agents_per_pos
+                            num_agents_remaining = num_starting_positions*num_curious_agents_per_pos - num_agents_tested
+                            wall_time_eta = (wall_time / num_agents_tested) * num_agents_remaining
+                            print(F"Wall Time: {get_time_str(wall_time)}, ETR: {get_time_str(wall_time_eta)}")
 
                             cur_agent_num += 1
 

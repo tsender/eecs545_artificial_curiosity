@@ -142,44 +142,51 @@ class Brain:
         nov_list = []
 
         for row in grains:
-            temp_list = []
+            temp_nov = []
             for g in row:
                 grain_tf = self._grain_to_tensor(g)
                 grain_tf = tf.reshape(grain_tf, (1, grain_tf.shape[0], grain_tf.shape[1], grain_tf.shape[2])) # Reshape to (1,H,W,C)
                 predicted_grain = self._network(grain_tf)
                 nov = self.novelty_function(grain_tf, predicted_grain).numpy()
-                temp_list.append(nov)
+                temp_nov.append(nov)
                 self._memory.push(Experience(nov, g))
-            nov_list.append(temp_list)
+            nov_list.append(temp_nov)
             
         return nov_list
 
-    def evaluate_novelty(self, grains: List[List[Image.Image]]):
-        """Evaluate novelty of a list of grains
+    def evaluate_grains(self, grains: List[List[Image.Image]]):
+        """Evaluate a list of grains
 
         Params:
             grains: List[List[Image.Image]]
                 2D List of new grains
 
         Returns:
-            2D List of novelty for new grains
+            2D List of novelty for new grains, and 2D list for reconstructed grains
         """
 
         # print("Evaluating grain novelty...")
         assert grains != [] and grains is not None
         nov_list = []
+        pred_grains_list = []
 
         for row in grains:
-            temp_list = []
+            temp_nov = []
+            temp_grains = []
             for g in row:
                 grain_tf = self._grain_to_tensor(g)
                 grain_tf = tf.reshape(grain_tf, (1, grain_tf.shape[0], grain_tf.shape[1], grain_tf.shape[2])) # Reshape to (1,H,W,C)
                 predicted_grain = self._network(grain_tf)
                 nov = self.novelty_function(grain_tf, predicted_grain).numpy()
-                temp_list.append(nov)
-            nov_list.append(temp_list)
+
+                temp_nov.append(nov)
+                pred_grain = tf.reshape(predicted_grain, (grain_tf.shape[1], grain_tf.shape[2], grain_tf.shape[3]))
+                pred_grain = tf.keras.preprocessing.image.array_to_img((pred_grain * 127.5) + 127.5) # Convert back to [0,255]
+                temp_grains.append(pred_grain)
+            nov_list.append(temp_nov)
+            pred_grains_list.append(temp_grains)
             
-        return nov_list
+        return nov_list, pred_grains_list
 
     @tf.function
     def _train_step(self, images: tf.Tensor):
@@ -210,15 +217,17 @@ class Brain:
 
         memory_list = self._memory.as_list()
         grains = list(map(lambda e: self._grain_to_tensor(e.grain), memory_list))
-        dataset = tf.data.Dataset.from_tensor_slices(grains).shuffle(self._batch_size).batch(self._batch_size)
+        dataset = tf.data.Dataset.from_tensor_slices(grains).shuffle(self._batch_size).batch(self._batch_size).repeat()
         dataset = iter(dataset)
 
         num_batches = math.ceil(len(memory_list) / self._batch_size)
         cur_avg_loss = 0
 
-        for _ in range(self._train_epochs_per_iter):
+        for i in range(self._train_epochs_per_iter):
             cur_avg_loss = 0
-            for data in dataset:
+            
+            for j in range(num_batches):
+                data = dataset.next()
                 loss = self._train_step(data).numpy()
                 cur_avg_loss += (loss/num_batches)
         
@@ -233,7 +242,7 @@ if __name__ == "__main__":
     # 0.25 seems to be the smallest value that the novelty loss will go.
     # If we use nov_thresh for training, do not set below 0.25
     brain1 = Brain(ListBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)
-    brain2 = Brain(PriorityBasedMemory(64), (64,64,1), 0.25, 'MSE', 1)
+    brain2 = Brain(PriorityBasedMemory(64), (64,64,1), 0.25, 'MSE', 10, 0.001)
 
     print(brain2.get_name())
     grain_nov = brain2.add_grains([
@@ -241,8 +250,9 @@ if __name__ == "__main__":
         [img, img]
     ])
     print("Grain novelty (before): ", grain_nov)
-    brain2.learn_grains()
-    grain_nov = brain2.evaluate_novelty([
+    loss = brain2.learn_grains()
+    print(F"Loss: {loss}")
+    grain_nov, _ = brain2.evaluate_grains([
         [img, img],
         [img, img]
     ])

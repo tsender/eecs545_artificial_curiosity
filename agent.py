@@ -3,7 +3,10 @@ lst_map = map
 
 from typing import Tuple, List
 import abc
+import os
+import csv
 import random
+from PIL import Image
 
 from brain import Brain
 from map import Map
@@ -44,28 +47,35 @@ class Curiosity(Motivation):
 
     def __init__(self, map: Map, brain: Brain, rate: int = 1):
         # This assigns a map to the agent, which is where they will get their directions from
-        self._map = map
+        self.map = map
         # Creates a brain for the agent with some parameters
         # TODO: These are not optimal, they have been set for testing purposes
         self._brain = brain
         self.rate = rate
+        self.perceived_path_novelty_history = []
+        self.grain_novelty_history = []
 
     def get_map(self):
-        return self._map
+        return self.map
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
 
         # Gets images from the map
-        grains = self._map.get_fov(position)
+        grains = self.map.get_fov(position)
         # Finds the novelty of those images
-        novelty = self._brain.evaluate_novelty(grains)
+        novelty, _ = self._brain.evaluate_grains(grains)
+
+        # Save novelty history
+        novelty_expanded = novelty[0] + novelty[1]
+        self.grain_novelty_history.append(novelty_expanded)
+        self.perceived_path_novelty_history.append(max(novelty_expanded))
 
         # Finds the potential new positions from the current position
         new_positions = self._generate_positions(position)
         # Makes sure that the agent doesn't go outside of the map
         # Creates a list of booleans to act as a filter for the list of positions
-        position_filter = self._map.clean_directions(new_positions)
+        position_filter = self.map.clean_directions(new_positions)
         # Finds the index with the greatest novelty that is also a valid position
         x,y = self._max_pos(novelty, position_filter)
         # Add the grains to memory
@@ -96,6 +106,34 @@ class Curiosity(Motivation):
         # Return the position that has the highest novelty
         return pos
 
+    def get_reconstruction_snapshot(self, position: Tuple[int]):
+        """Saves the full-view and its reconstruction from the current position"""
+        fullview = self.map.full_view(position)
+        fov_grains = self.map.get_fov(position)
+        _, pred_grains = self._brain.evaluate_grains(fov_grains)
+
+        # Stitch together predicted grains
+        fov = self.map.fov
+        pred_fullview = Image.new('L', (2*fov, 2*fov))
+        pred_fullview.paste(im=pred_grains[0][0], box=(0, 0))
+        pred_fullview.paste(im=pred_grains[0][1], box=(fov, 0))
+        pred_fullview.paste(im=pred_grains[1][0], box=(0, fov))
+        pred_fullview.paste(im=pred_grains[1][1], box=(fov, fov))
+
+        return fullview, pred_fullview
+
+    def save_data(self, data_dir: str):
+        # Save grain novelty history
+        with open(os.path.join(data_dir, "grain_novelty.csv"), "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(self.grain_novelty_history)
+
+        # Save grain novelty history
+        with open(os.path.join(data_dir, "perceived_path_novelty.csv"), "w") as f:
+            writer = csv.writer(f)
+            for val in self.perceived_path_novelty_history:
+                writer.writerow([val])
+
     def __str__(self):
         return "Curiosity_" + self._brain.get_name()
 
@@ -105,11 +143,12 @@ class Random(Motivation):
 
     def __init__(self, map: Map, rate: int = 1):
         # Saves the given map
-        self._map = map
+        self.map = map
         self.rate = rate
+        self.data_dir = None
 
     def get_map(self):
-        return self._map
+        return self.map
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -117,7 +156,7 @@ class Random(Motivation):
         # Gets a list of new positions
         new_positions = self._generate_positions(position)
         # Creates a filter for the ones that are in the map or out of it
-        position_filter = self._map.clean_directions(new_positions)
+        position_filter = self.map.clean_directions(new_positions)
 
         #  In this case it's easier to flatten them and chose than to work with a 2d array
         flattened_positions = (new_positions[0] + new_positions[1])
@@ -135,6 +174,12 @@ class Random(Motivation):
         # Return that 
         return flattened_positions[index]
 
+    def save_data(self, data_dir: str):
+        pass
+
+    def get_reconstruction_snapshot(self, position: Tuple[int]):
+        return None, None
+
     def __str__(self):
         return "Random"
 
@@ -143,13 +188,13 @@ class Linear(Motivation):
 
     def __init__(self, map: Map, rate: int = 1):
         # Saves the map
-        self._map = map
+        self.map = map
         # Chooses a random direction to move in
         self.direction = (random.randint(0, 1), random.randint(0, 1))
         self.rate = rate
 
     def get_map(self):
-        return self._map
+        return self.map
 
     def get_from_position(self, position: Tuple[int]):
         """Implements the abstract method from Motivation. Gets the next position from the current position"""
@@ -157,7 +202,7 @@ class Linear(Motivation):
         # Find the possible new positions
         new_positions = self._generate_positions(position)
         # Creates a filter for the ones that are in the map or out of it
-        position_filter = self._map.clean_directions(new_positions)
+        position_filter = self.map.clean_directions(new_positions)
         
         # Cycles through all of the options until a valid position is found
         while not position_filter[self.direction[1]][self.direction[0]]:
@@ -193,6 +238,12 @@ class Linear(Motivation):
 
         # Return the chosen position
         return new_positions[self.direction[1]][self.direction[0]]
+
+    def save_data(self, data_dir: str):
+        pass
+
+    def get_reconstruction_snapshot(self, position: Tuple[int]):
+        return None, None
     
     def __str__(self):
         return "Linear"
@@ -200,7 +251,7 @@ class Linear(Motivation):
 
 class Agent:
     """This abtracts the motivation away so that we can iterate over them later"""
-    def __init__(self, motivation: Motivation, position: Tuple[int] = (0, 0)):
+    def __init__(self, motivation: Motivation, position: Tuple[int] = (0, 0), steps_bw_snapshot: int = 50):
         # Make sure that it was passed valid values
         assert motivation is not None
 
@@ -210,9 +261,19 @@ class Agent:
         self.position = position
         # Save the position to its history (which we will use to reconstruct the path later)
         self.history = [position]
+        self.data_dir = self.__str__()
+        self.step_num = 0
+        self.steps_bw_snapshot = steps_bw_snapshot
+
+    def set_data_dir(self, data_dir: str):
+        """Set a new data directory"""
+        self.data_dir = data_dir
 
     def step(self):
         """This performs a simple step for the agent, moving it from one position to the next"""
+
+        if self.step_num == 0 or (self.step_num % self.steps_bw_snapshot == 0):
+            self.save_reconstruction_snapshot()
 
         # Get the new position based on the motivation
         new_position = self._motivation.get_from_position(self.position)
@@ -220,13 +281,46 @@ class Agent:
         self.history.append(new_position)
         # Update its position based on the new position
         self.position = new_position
+        self.step_num += 1
+
+    def save_reconstruction_snapshot(self):
+        """Saves the full-view and its reconstruction from the current position"""
+        fullview, pred_fullview = self._motivation.get_reconstruction_snapshot(self.position)
+
+        if fullview is None:
+            return
+
+        dir = os.path.join(self.data_dir, "snapshots")
+        os.makedirs(dir, exist_ok=True)
+
+        orig_name = os.path.join(dir, "step" + str(self.step_num) + "_orig.png")
+        pred_name = os.path.join(dir, "step" + str(self.step_num) + "_pred.png")
+        fullview.save(orig_name, "PNG")
+        pred_fullview.save(pred_name, "PNG")
 
     def get_map(self):
         return self._motivation.get_map()
 
     def get_path_novelty(self):
+        """Return average path variance. Note, images are converted to the range [-1,1]"""
         images = evaluate.load_from_map(self.get_map(), self.history)
         return evaluate.avg_pixelwise_var(images)
+
+    def save_data(self):
+        """Save agent's data to a folder"""
+        os.makedirs(self.data_dir, exist_ok=True)
+        # Save the path coordinates to a file
+        with open(os.path.join(self.data_dir, "path_record.csv"), 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(self.history) # x,y format
+
+        # Save avg path variance
+        with open(os.path.join(self.data_dir, "avg_path_variance.csv"), "w") as f:
+            writer = csv.writer(f)
+            writer.writerow([self.get_path_novelty()])
+
+        # Save any additional data relevant to the motivation (applies to Curiosity)
+        self._motivation.save_data(self.data_dir)
 
     def __str__(self):
         return F"{self._motivation}_Agent_Pos_{self.history[0][0]}_{self.history[0][1]}"

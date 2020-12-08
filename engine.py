@@ -189,7 +189,7 @@ def run_experiments(map: Map, num_starting_positions):
     brain_config['memory_length'] = [32, 64]
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
     brain_config['train_epochs_per_iter'] = [1, 2, 3]
-    brain_config['learning_rate'] = [0.0004, 0.0002]
+    brain_config['learning_rate'] = [0.0002, 0.0004]
 
     # Calculate number of different curious agents per position
     num_curious_agents_per_pos = 1

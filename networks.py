@@ -80,10 +80,10 @@ def create_network64():
     e = tf.keras.layers.Flatten()(e) # Shape (1, 8192)
     e = tf.keras.layers.Dense(1024, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(e)
     e = tf.keras.layers.Dense(512, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(e)
-    e = tf.keras.layers.Dense(128, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(e)
+    e = tf.keras.layers.Dense(256, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(e)
 
     # Decoder
-    d = tf.keras.layers.Dense(128, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(e)
+    d = tf.keras.layers.Dense(256, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(e)
     d = tf.keras.layers.Dense(512, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(d)
     d = tf.keras.layers.Dense(1024, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(d)
     d = tf.keras.layers.Dense(8*8*128, activation=leaky_relu, kernel_initializer=tf.initializers.he_normal(), kernel_regularizer=tf.keras.regularizers.L2)(d)

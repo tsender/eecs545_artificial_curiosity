@@ -118,7 +118,7 @@ class Curiosity(Motivation):
         pred_fullview.paste(im=pred_grains[0][0], box=(0, 0))
         pred_fullview.paste(im=pred_grains[0][1], box=(fov, 0))
         pred_fullview.paste(im=pred_grains[1][0], box=(0, fov))
-        pred_fullview.paste(im=pred_grains[0][1], box=(fov, fov))
+        pred_fullview.paste(im=pred_grains[1][1], box=(fov, fov))
 
         return fullview, pred_fullview
 

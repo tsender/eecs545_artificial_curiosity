@@ -32,7 +32,8 @@ def avg_pixelwise_var(images_seen: np.int16):
     """
     Computes the variance for every pixel p across all images, resulting in a matrix holding
     the variance for eack pixel p, then calculates the average of that variance across all
-    pixels. This allows us to compensate for different fov sizes
+    pixels. This allows us to compensate for different fov sizes.
+    Note: images are normalized to [-1,1] before calculations
 
     Params
     ------
@@ -47,7 +48,8 @@ def avg_pixelwise_var(images_seen: np.int16):
     """
 
     # Computes the variance
-    variance_matrix = np.var(images_seen, 0)
+    images = (images_seen.astype(np.float32) - 127.5) / 127.5 # Normalize to [-1,1]
+    variance_matrix = np.var(images, 0)
     # Returns the average of that variance
     return(np.sum(variance_matrix)/variance_matrix.size)
 

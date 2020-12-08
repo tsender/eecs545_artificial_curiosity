@@ -1,7 +1,9 @@
 
+list_map = map
+
 import matplotlib.pyplot as plt 
 import numpy as np
-import math
+import csv
 import os
 
 from map import Map
@@ -9,118 +11,140 @@ from engine import load_agent_data
 
 
 ## TODO novelty_analysis needs to be improved 
+## TODO compare between different starting point 
 
 class PlotResults():
     """
     class implementation for the convenience of reading the data 
     at each starting position
     """
-    def __init__(self, path: str, pos: str):
+    def __init__(self, dir_path: str, results_folder: str, pos_folder: str):
         """
         Initilize the Plot Results class by path and starting position
 
         Parameters:
         ------
-        path: the "results" folder path
+        dir_path: the current working directory path
+        results: the "results2" folder 
         pos: the "pos_xxx_xxx" folder name
         """
-        self.path = path
-        self.pos = pos
+        self.dir_path = dir_path
+        self.results_folder = results_folder
+        self.pos_folder = pos_folder
     
 
-    def agent_data_dict(self, path: str, pos: str):
+    def agent_data_dict(self, results_folder: str, pos_folder: str):
         """
         use load_agent_data function in engine module to load results csv/txt
 
         Parameters:
         ------
-        path: the "results" folder path
+        results_folder: the "results" folder
         pos: the "pos_xxx_xxx" folder name
 
+        Return: six dictionaries ref_agents and cur_agents stored separately 
+        ------
+        {agent_name: values}
+        Curiosity agents: cur_grain_novelty, cur_path_record, 
+                          cur_perceived_path_novelty, cur_ave_path_novelty 
+        Reference agents: ref_path_record, ref_ave_path_novelty
+        """
+        # access the ../results/pos_xxx_xxx folder
+        results_path = os.path.join(self.dir_path, self.results_folder, self.pos_folder) 
+        # access the name of files in ../results/pos_xxx_xxx
+        agent_names = os.listdir(results_path) 
+
+        # store curiosity agents data
+        cur_grain_novelty = {}
+        cur_path_record = {}
+        cur_perceived_path_novelty = {}
+        cur_avg_path_variance = {}
+        # store reference agents data
+        ref_path_record = {}
+        ref_avg_path_variance = {}
+
+        for agent_name in agent_names:
+            # loop over each agent and record all info into dict
+            # for cur_agents: [avg_path_variance.csv, grain_novelty.csv, path_record.csv, perceived_path_novelty.csv, snapshots]
+            # for ref_agents: [avg_path_variance.csv, path_record.csv]
+            if agent_name.startswith("Curiosity"):
+                cur_grain_novelty[agent_name] = self.read_csv(os.path.join(results_path, agent_name, 'grain_novelty.csv'))
+                cur_path_record[agent_name] = self.read_csv(os.path.join(results_path, agent_name, 'path_record.csv'))
+                cur_perceived_path_novelty[agent_name] = self.read_csv(os.path.join(results_path, agent_name, 'perceived_path_novelty.csv'))
+                # avg_path_variance is a float, pop out from a list[list[avg_path_variance]]
+                cur_avg_path_variance[agent_name] = self.read_csv(os.path.join(results_path, agent_name, 'avg_path_variance.csv'))[0][0]
+
+            else:
+                ref_path_record[agent_name] = self.read_csv(os.path.join(results_path, agent_name, 'path_record.csv'))
+                # avg_path_variance is a float, pop out from a list[list[avg_path_variance]]
+                ref_avg_path_variance[agent_name] = self.read_csv(os.path.join(results_path, agent_name, 'avg_path_variance.csv'))[0][0]
+
+        return cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, ref_path_record, ref_avg_path_variance
+    
+
+
+    def read_csv(self, filepath: str):
+        """ 
+        Help to read csv file
+
+        Parameters:
+        ------
+        filepath: file path of the csv
+        
         Return:
         ------
-        cur_agent_path: dict --> {curiosity agent_name: historical path}
-        cur_agent_nov: dict --> {curiosity agent_name: average variance}
-        agent_names: list --> the name of each agent; load from novelty.txt file
+        list_content: a list of whatever data recorded (convert to float)
         """
+        if (filepath != None) and (filepath.split(".")[-1] == "csv"):
+            # create a list to hold data
+            list_content = []
+            # open the csv file
+            with open(filepath, 'r', newline='') as f:
+                csv_reader = csv.reader(f, delimiter=',')
+                for row in csv_reader:
+                    list_content.append(row)
 
-        foldername = os.path.join(self.path, self.pos) # ../results/pos_xxx_xxx
-        filenames = os.listdir(foldername) # access the name of each csv/txt file
+        else: # in case there is data not been recorded
+            unrecorded_data = filepath.split("/")[-2:]
+            print(f"{unrecorded_data} is not recorded")
 
-        # access to path file and novelty file
-        agent_files = [filename for filename in filenames if filename.endswith(".csv")]
-        # lin_agent_file = [filename for filename in filenames if filename.startswith("Linear")].pop()
-        # rand_agent_file = [filename for filename in filenames if filename.startswith("Rand")].pop()
-        novelty_file = [filename for filename in filenames if filename.startswith("novelty")].pop()
-
-        # load path data into dictionary
-        agent_path = {}
-        for agent_file in agent_files:
-            # remove _path_record.csv from agent name
-            # so that novelty dict and path dict will have the same key
-            agent_name = agent_file[:-16] 
-            agent_path[agent_name] = load_agent_data(os.path.join(foldername, agent_file))
-        
-
-        # load novelty data into dictionary
-        agent_nov = {}
-        with open(os.path.join(foldername, novelty_file)) as f:
-            for line in f:
-                (key, value) = line.split(":")
-                agent_nov[key] = float(value)
-        
-        # record agent_names; maybe used for further purpose
-        agent_names = list(agent_nov.keys())
-
-        return agent_path, agent_nov, agent_names
+        return list(list_map(lambda x: list(list_map(float, x)), list_content))
+    
     
 
     ## TODO novelty_analysis needs to be improved  
-    def novelty_analysis(self, agent_nov):
+    def novelty_analysis(self, cur_avg_path_variance: dict, ref_avg_path_variance: dict):
         """
         analyze the novalty of each agent
         Needs more improvements
         """
-        agent_nov_keys = list(agent_nov.keys())
-
-        # separate curiosity agents and reference agents data
-        cur_agent_nov = {}
-        ref_agent_nov = {}
-        for agent_key in agent_nov_keys:
-            if agent_key.startswith('Cur'): # the name of Curiosity agent starts with "Curiosity"
-                cur_agent_nov[agent_key] = agent_nov[agent_key]
-            else:
-                ref_agent_nov[agent_key] = agent_nov[agent_key]
-        
         # sort novelty of curiosity agents 
-        cur_agent_nov_sort = dict(sorted(cur_agent_nov.items(), key=lambda item: item[1], reverse=True))
+        cur_avg_path_variance_sort = dict(sorted(cur_avg_path_variance.items(), key=lambda item: item[1], reverse=True))
 
-        return ref_agent_nov, cur_agent_nov, cur_agent_nov_sort
+        return cur_avg_path_variance_sort
     
 
 
-    def plot_novelty(self, agent_nov: dict, ref_agent_nov: dict, show: bool=False, save: bool=False):
+    def plot_path_variance(self, cur_avg_path_variance: dict, ref_avg_path_variance: dict, show: bool=False, save: bool=False):
         """histogram of novelty of each agent
         """
         # read all novelty data
-        agent_nov_values = list(agent_nov.values())
+        agent_path_variance = list(cur_avg_path_variance.values()) + list(ref_avg_path_variance.values())
 
         # find novelty for reference agents
-        ref_agent_keys = list(ref_agent_nov.keys())
+        ref_agent_keys = list(ref_avg_path_variance.keys())
         for ref_agent_key in ref_agent_keys:
             if ref_agent_key.startswith('Linear'):
-                lin_nov = ref_agent_nov[ref_agent_key]
+                lin_path_variance = ref_avg_path_variance[ref_agent_key]
             else:
-                rand_nov = ref_agent_nov[ref_agent_key]
+                rand_path_variance = ref_avg_path_variance[ref_agent_key]
 
         # make histogram
         if (show or save):
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(figsize=(8, 6), dpi=150)
 
-            # fix the number of bins
-            bins = np.linspace(math.ceil(min(agent_nov_values)), math.floor(max(agent_nov_values)),20)
             # hist plot
-            ax.hist(agent_nov_values, bins=bins, alpha=0.5)
+            ax.hist(agent_path_variance, bins=20, alpha=0.5)
             # annotate
             ax.set_title("Histogram of novelty of agents")
             ax.set_xlabel("Variance of novalty")
@@ -128,22 +152,23 @@ class PlotResults():
 
             # mark linear and random agents
             ymin, ymax = plt.ylim()
-            ax.vlines(lin_nov, ymin=ymin, ymax=ymax, linestyles='dashed', color='r')
-            ax.vlines(rand_nov, ymin=ymin, ymax=ymax, linestyles='dashed', color='k')
-            ax.text(lin_nov-50, ymax*0.5, "Linear agent", color ='r', rotation=90)
-            ax.text(rand_nov-50, ymax*0.5, "Random agent", color ='k', rotation=90)
+            ax.vlines(lin_path_variance , ymin=ymin, ymax=ymax, linestyles='dashed', color='r')
+            ax.vlines(rand_path_variance, ymin=ymin, ymax=ymax, linestyles='dashed', color='k')
+            ax.text(lin_path_variance-0.001, ymax*0.6, "Linear agent", color ='r', rotation=90)
+            ax.text(rand_path_variance-0.001, ymax*0.6, "Random agent", color ='k', rotation=90)
 
             if (save):
                 # like results folder, create a plot folder for each starting pos
-                dirname = 'plots' + '/' + self.pos
-                plotname = self.pos + '_novelty_hist' + '.svg'
+                dirname = 'plots' + '/' + self.pos_folder
+                plotname = self.pos_folder + '_novelty_hist' + '.svg'
                 os.makedirs(dirname, exist_ok=True)
-                plt.savefig(os.path.join(os.path.dirname(__file__), dirname, plotname))
+                plt.savefig(os.path.join(self.dir_path, dirname, plotname))
                 
             plt.show()
-           
 
-    def plot_paths_new(self, agent_path: dict, cur_agent_nov_sort:dict, ref_agent_nov:dict, num_agents: int, show: bool=False, save: bool=False):
+
+
+    def plot_paths_new(self, cur_path_record: dict, ref_path_record: dict, show: bool=False, save: bool=False):
         """
         plot selected agent path after loading the agent path data
 
@@ -154,11 +179,14 @@ class PlotResults():
         show: bool --> show plot
         save: bool --> save plot
         """
-        # Only plot path with highest [num_gents] of agent paths
-        cur_agent_keys = list(cur_agent_nov_sort.keys())
-        ref_agent_keys = list(ref_agent_nov.keys())
-        selected_agents = ref_agent_keys + cur_agent_keys[:num_agents]
+        # # Only plot path with highest [num_gents] of agent paths
+        # cur_agent_keys = list(cur_agent_nov_sort.keys())
+        # ref_agent_keys = list(ref_agent_nov.keys())
+        # selected_agents = ref_agent_keys + cur_agent_keys[:num_agents]
 
+        # merge ref_agents and cur_agents
+        all_path_record = {**ref_path_record, **cur_path_record}
+        selected_agents = list(all_path_record.keys())
 
         # plot path map
         if (show or save):
@@ -174,7 +202,7 @@ class PlotResults():
             # TODO: Only select top 
             for agent in selected_agents:
                 # Splits x and y into separate lists (technically tuples)
-                x, y = zip(*agent_path[agent])
+                x, y = zip(*all_path_record[agent])
                 ax.plot(x, y, label=agent, alpha=0.5)
 
             # Annotate the chart
@@ -187,36 +215,42 @@ class PlotResults():
 
             if (save):
                 # like results folder, create a plot folder for each starting pos
-                dirname = 'plots' + '/' + self.pos
-                plotname = self.pos + '_path_map_' + str(num_agents) + 'cur_agents' + '.svg'
+                dirname = 'plots' + '/' + self.pos_folder
+                plotname = self.pos_folder + '_path_map_' + 'cur_agents' + '.svg'
                 os.makedirs(dirname, exist_ok=True)
-                plt.savefig(os.path.join(os.path.dirname(__file__), dirname, plotname))
+                plt.savefig(os.path.join(self.dir_path, dirname, plotname))
+                pass
             
             plt.show()
 
-
-    
 
 if __name__ == "__main__":
     fov = 64
     image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
     map = Map(image_path, fov, 2)
 
+    ########## Example results of 'pos_1772_86'
     ## initialize PlotResults class
-    results_path = os.path.join(os.path.dirname(__file__), 'results') # results folder
-    agent_pos = os.listdir(results_path) # agent position folder
+    dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity
+    results_folder = 'results2' # results folder ../eecs545_artificial_curiosity/results2
+    # pos_folder = os.listdir(results_folder) # agent position folder
+    pos_folder = ['pos_1772_86']
 
-    for i in range(10):
-        print(f"Processing agents at staring position {agent_pos[i]}...")
+    for i in range(len(pos_folder)):
+        print(f"Processing agents at staring position {pos_folder[i]}...")
         # initiliza class
-        plot_results = PlotResults(results_path, agent_pos[i])
-        # load data
-        agent_path, agent_nov, _ = plot_results.agent_data_dict(results_path, agent_pos[i])
-        # analyze novelty
-        ref_agent_nov, cur_agent_nov, cur_agent_nov_sort = plot_results.novelty_analysis(agent_nov)
-        # plot novelty
-        plot_results.plot_novelty(agent_nov, ref_agent_nov, show=True, save=False)
-        # plot path mat
-        plot_results.plot_paths_new(agent_path, cur_agent_nov_sort, ref_agent_nov, num_agents=70, show=True, save=False)
+        plot_results = PlotResults(dir_path, results_folder, pos_folder[i])
+        # load data 
+        # all stored five csv files are loaded
+        cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
+        ref_path_record, ref_avg_path_variance = plot_results.agent_data_dict(results_folder, pos_folder[i])
+        
+        # # analyze novelty
+        # ref_agent_nov, cur_agent_nov, cur_agent_nov_sort = plot_results.novelty_analysis(agent_nov)
+
+        # # plot novelty
+        plot_results.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, show=True, save=True)
+        # # plot path mat
+        plot_results.plot_paths_new(cur_path_record, ref_path_record, show=True, save=True)
 
     

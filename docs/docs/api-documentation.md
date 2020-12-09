@@ -369,6 +369,15 @@ This class extends Motivation and creates a curious motivation for an agent
 
 Implements the abstract method from Motivation. Gets the next position from the current position
 
+<a name="agent.Curiosity.get_reconstruction_snapshot"></a>
+#### get\_reconstruction\_snapshot
+
+```python
+ | get_reconstruction_snapshot(position: Tuple[int])
+```
+
+Saves the full-view and its reconstruction from the current position
+
 <a name="agent.Random"></a>
 ## Random Objects
 
@@ -414,6 +423,15 @@ class Agent()
 
 This abtracts the motivation away so that we can iterate over them later
 
+<a name="agent.Agent.set_data_dir"></a>
+#### set\_data\_dir
+
+```python
+ | set_data_dir(data_dir: str)
+```
+
+Set a new data directory
+
 <a name="agent.Agent.step"></a>
 #### step
 
@@ -422,6 +440,33 @@ This abtracts the motivation away so that we can iterate over them later
 ```
 
 This performs a simple step for the agent, moving it from one position to the next
+
+<a name="agent.Agent.save_reconstruction_snapshot"></a>
+#### save\_reconstruction\_snapshot
+
+```python
+ | save_reconstruction_snapshot()
+```
+
+Saves the full-view and its reconstruction from the current position
+
+<a name="agent.Agent.get_path_novelty"></a>
+#### get\_path\_novelty
+
+```python
+ | get_path_novelty()
+```
+
+Return average path variance. Note, images are converted to the range [-1,1]
+
+<a name="agent.Agent.save_data"></a>
+#### save\_data
+
+```python
+ | save_data()
+```
+
+Save agent's data to a folder
 
 <a name="testing"></a>
 # testing
@@ -599,13 +644,14 @@ avg_pixelwise_var(images_seen: np.int16)
 
 Computes the variance for every pixel p across all images, resulting in a matrix holding
 the variance for eack pixel p, then calculates the average of that variance across all
-pixels. This allows us to compensate for different fov sizes
+pixels. This allows us to compensate for different fov sizes.
+Note: images are normalized to [-1,1] before calculations
 
 Params
 ------
 
 images_seen
-    A numpy matrix holding numpy versions of all of our images
+A numpy matrix holding numpy versions of all of our images
 
 Returns
 -------
@@ -926,14 +972,14 @@ grains: List[List[Image.Image]]
 
   2D List of novelty for new grains
 
-<a name="brain.Brain.evaluate_novelty"></a>
-#### evaluate\_novelty
+<a name="brain.Brain.evaluate_grains"></a>
+#### evaluate\_grains
 
 ```python
- | evaluate_novelty(grains: List[List[Image.Image]])
+ | evaluate_grains(grains: List[List[Image.Image]])
 ```
 
-Evaluate novelty of a list of grains
+Evaluate a list of grains
 
 Params:
 grains: List[List[Image.Image]]
@@ -941,7 +987,7 @@ grains: List[List[Image.Image]]
 
 **Returns**:
 
-  2D List of novelty for new grains
+  2D List of novelty for new grains, and 2D list for reconstructed grains
 
 <a name="brain.Brain.learn_grains"></a>
 #### learn\_grains

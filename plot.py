@@ -347,7 +347,7 @@ if __name__ == '__main__':
     ####################################### Example of loading interesting starting positions and agents#######################
     ###### Processing can be based on multiple starting positions
     # starting_positions = pos_list
-    starting_positions = ['pos_859_619']
+    starting_positions = pos_list
 
     for starting_position in starting_positions:
         print(f"processing the starting positions {starting_position}...")

@@ -70,6 +70,19 @@ Args
     data : Experience  
         An experience to add
 
+<a name="memory.BaseMemory.get_name"></a>
+#### get\_name
+
+```python
+ | @abc.abstractmethod
+ | get_name()
+```
+
+Returns the name of the memory object.
+
+Returns
+    The name of the memory object as a string
+
 <a name="memory.BaseMemory.as_list"></a>
 #### as\_list
 
@@ -105,6 +118,18 @@ Args
     data : Experience  
         An experience to add. If full, experiences that are less novel are removed (forgotten).
 
+<a name="memory.PriorityBasedMemory.get_name"></a>
+#### get\_name
+
+```python
+ | get_name()
+```
+
+Returns the full descriptive name of the memory object.
+
+Returns
+    The name of the memory object as a string
+
 <a name="memory.ListBasedMemory"></a>
 ## ListBasedMemory Objects
 
@@ -126,6 +151,18 @@ Add an experience to memory
 Args
     data : Experience  
         An experience to add. If full, remove oldest experience and add new experience.
+
+<a name="memory.ListBasedMemory.get_name"></a>
+#### get\_name
+
+```python
+ | get_name()
+```
+
+Returns the full descriptive name of the memory object.
+
+Returns
+    The name of the memory object as a string
 
 <a name="__init__"></a>
 # \_\_init\_\_
@@ -396,7 +433,7 @@ This performs a simple step for the agent, moving it from one position to the ne
 #### plot\_paths
 
 ```python
-plot_paths(map: Map, agent_lst: List[Agent], show: bool, save: bool, dirname: str)
+plot_paths(map: Map, agent_list: List[Agent], show: bool, save: bool, dirname: str)
 ```
 
 Plots out the paths of the agents on the map
@@ -406,7 +443,7 @@ Params
 map: Map
     A map that will be used to get the bounds and background for plotting
 
-agent_lst: List[Agent]
+agent_list: List[Agent]
     A list of agents whose paths need to be plotted
 
 show: bool
@@ -422,59 +459,63 @@ Returns
 -------
 None
 
-<a name="engine.run_agent_experiment"></a>
-#### run\_agent\_experiment
+<a name="engine.run_agents"></a>
+#### run\_agents
 
 ```python
-run_agent_experiment(motivation_lst: List[Motivation], position_lst: List[Tuple[int]], map: Map, iterations: int, show: bool = True, save_graph: bool = True, dirname: str = "results")
+run_agents(agent_list: List[Agent], path_length: int)
 ```
 
-Runs an experiment on the motication given, then handles plotting and saving data.
+Runs an experiment on the provided agents.
 
 Params
 ------
-motivation_lst: List[Motivation]
-    A list of Motivation class instances to be used as the drivers for agents. This must be the same length as position_lst
+agent_list: List[Agent]
+    A list of Agent instances to be ran
 
-position_lst: List[Tuple[int]]
-    A list of poitions for the agents to start out at (matching indices with elements from motivation_lst). It must be the same length as potivation_lst.
-
-map: Map
-    An instance of the Map class that will be used by the agent to handle directions, and for the plotting
-
-iterations: int
+path_length: int
     The number of steps that each agent should take.
-
-show: bool=True
-    Whether the graphs should be displayed
-
-save_graph: bool
-    Whether the plots should be saved to the disk or not
-
-dirname: str=None
-    The directory in which the graphs will be stored
-
 
 Returns
 -------
 None
 
-<a name="engine.save_agent_data"></a>
-#### save\_agent\_data
+<a name="engine.run_experiments"></a>
+#### run\_experiments
 
 ```python
-save_agent_data(agent_lst: List[Agent], dirname: str)
+run_experiments(map: Map, num_starting_positions)
 ```
 
-Save the path record of each agent as a csv file
+Run a series of experiments. Generate Random, Linear, and Curiosity agents for each starting position.
+Test a series of brain configurations for the Curiosity agent so we can see if there is an optimal configuration.
+
+<a name="engine.save_and_plot"></a>
+#### save\_and\_plot
+
+```python
+save_and_plot(agent_list: List[Agent], novelty_filename: str, dirname: str, show: bool = False, save_plots: bool = True)
+```
+
+Save the path record of each agent as a csv file, save the novelty to a .txt file, and plot and save graphs.
+Note: When plotting, it will assume all agents use the same map.
 
 Params:
 ------
-agent_lst: List[Agent]
+agent_list: List[Agent]
 A list of agent whose path coordinates to be saved
+
+novelty_filename: str
+The filename for storing the agents' novelty
 
 dirname: str
 The directory name where the csv file will be saved
+
+show: bool
+Whether the graphs should be displayed
+
+save_plots: bool
+Whether the plots should be saved to the disk or not
 
 **Returns**:
 
@@ -503,6 +544,25 @@ Returns
 
 List[Tuple[int]]
     Returns a list of x and y coordinates
+
+<a name="engine.get_time_str"></a>
+#### get\_time\_str
+
+```python
+get_time_str(time_in)
+```
+
+Convert time_in to a human-readible string, e.g. '1 days 01h:45m:32s'
+
+**Arguments**:
+
+- `time_in` - float
+  Time in seconds
+  
+
+**Returns**:
+
+  A string
 
 <a name="evaluate"></a>
 # evaluate
@@ -817,7 +877,7 @@ class Brain()
 #### \_\_init\_\_
 
 ```python
- | __init__(memory: BaseMemory, img_size: Tuple, nov_thresh: float = 0.25, novelty_loss_type: str = 'MSE', train_epochs_per_iter: int = 1)
+ | __init__(memory: BaseMemory, img_size: Tuple, nov_thresh: float = 0.25, novelty_loss_type: str = 'MSE', train_epochs_per_iter: int = 1, learning_rate: float = 0.001)
 ```
 
 Initializes the Brain by creating CNN and AE
@@ -834,6 +894,20 @@ Initializes the Brain by creating CNN and AE
   A string indicating which novelty function to use (MSE or MAE)
 - `train_epochs_per_iter` - int
   Number of epochs to train for in a single training session
+- `learning_rate` - float
+  Learning rate for neural network optimizer
+
+<a name="brain.Brain.get_name"></a>
+#### get\_name
+
+```python
+ | get_name()
+```
+
+Returns the full descriptive name of the brain object.
+
+Returns
+    The name of the brain object as a string
 
 <a name="brain.Brain.add_grains"></a>
 #### add\_grains

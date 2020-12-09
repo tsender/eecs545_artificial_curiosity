@@ -249,8 +249,7 @@ if __name__ == "__main__":
         # ref_agent_nov, cur_agent_nov, cur_agent_nov_sort = plot_results.novelty_analysis(agent_nov)
 
         # # plot novelty
-        plot_results.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, show=True, save=True)
+        plot_results.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, show=True, save=False)
         # # plot path mat
-        plot_results.plot_paths_new(cur_path_record, ref_path_record, show=True, save=True)
-
-    
+        plot_results.plot_paths_new(cur_path_record, ref_path_record, show=True, save=False)
+        

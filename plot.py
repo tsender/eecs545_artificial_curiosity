@@ -23,7 +23,7 @@ class PlotResults():
     ------
         dir_path: the current working directory path (./eecs545_artificial_curiosity/)
         results_folder: the "results2" folder 
-        results_path: the ./eecs545_artificial_curiosity/results2
+        results_path: (./eecs545_artificial_curiosity/results2)
     
     Methods:
     ------
@@ -31,7 +31,9 @@ class PlotResults():
         resd_csv: load csv data into list
         load_agent_data: load all stored agent csv file
         novelty_analysis: TODO analyze results
-        plot_path_variance: plot the path variance for a single starting point
+
+        ***The following methods are for a single starting point
+        plot_path_variance: plot the path variance 
         plot_paths_new: plot path map
     """
     def __init__(self, dir_path: str, results_folder: str):
@@ -89,17 +91,23 @@ class PlotResults():
         ------
         list_content: a list of whatever data recorded (convert to float)
         """
-        if (filepath != None) and (filepath.split(".")[-1] == "csv"):
-           
-            list_content = []
-            with open(filepath, 'r', newline='') as f:
-                csv_reader = csv.reader(f, delimiter=',')
-                for row in csv_reader:
-                    list_content.append(row)
+        list_content = []
+        # try:
+        #     with open(filepath, 'r', newline='') as f:
+        #         csv_reader = csv.reader(f, delimiter=',')
+        #         for row in csv_reader:
+        #             list_content.append(row)
+        # except:
+        #     print("Data has not been recorded")
 
-        else: # in case there is data not been recorded
-            unrecorded_data = filepath.split("/")[-2:]
-            print(f"{unrecorded_data} is not recorded")
+        try:
+            f = open(filepath, 'r', newline='')
+        except:
+            print("...Data has not been recorded")
+        else:
+            csv_reader = csv.reader(f, delimiter=',')
+            for row in csv_reader:
+                 list_content.append(row)
 
         return list(list_map(lambda x: list(list_map(float, x)), list_content))
 
@@ -209,8 +217,8 @@ class PlotResults():
             ymin, ymax = plt.ylim()
             ax.vlines(lin_path_variance , ymin=ymin, ymax=ymax, linestyles='dashed', color='r')
             ax.vlines(rand_path_variance, ymin=ymin, ymax=ymax, linestyles='dashed', color='k')
-            ax.text(lin_path_variance-0.001, ymax*0.6, "Linear agent", color ='r', rotation=90)
-            ax.text(rand_path_variance-0.001, ymax*0.6, "Random agent", color ='k', rotation=90)
+            ax.text(lin_path_variance-0.002, ymax*0.6, "Linear agent", color ='r', rotation=90)
+            ax.text(rand_path_variance-0.002, ymax*0.6, "Random agent", color ='k', rotation=90)
 
             if (save):
                 # like results folder, create a plot folder for each starting pos
@@ -220,55 +228,24 @@ class PlotResults():
                 plt.savefig(os.path.join(self.dir_path, dirname, plotname))
                 
             plt.show() 
-        
 
 
-
-if __name__ == '__main__':
-    fov = 64
-    image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
-    map = Map(image_path, fov, 2)
-
-    ## initialize PlotResults class
-    dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity/
-    results_folder = 'results2' 
-    plot_result = PlotResults(dir_path, results_folder)
-
-    ## read the starting position names and agent_names
-    pos_list, agent_names = plot_result.load_file_names(results_folder)
-
-
-    ## Example of loading interesting starting positions and agents
-    pos_list_test = ['pos_1772_86', 'pos_2384_959']
-    agent_names_test = agent_names[:2]
-    # load all six dictionary for future analysis
-    cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
-    ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(pos_list_test, agent_names_test)
-
-
-    ## Examples of ploting avg_path_variance
-    # plot avg_variance per starting position
-    pos = ['pos_1772_86']
-    cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
-    ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(pos, agent_names)
-
-    plot_result.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, pos[0], show=True, save=True)
-
-
-
-
-'''
-    def plot_paths_new(self, cur_path_record: dict, ref_path_record: dict, show: bool=False, save: bool=False):
+    def plot_paths_new(self, cur_path_record: dict, ref_path_record: dict, pos: str, show: bool=False, save: bool=False):
         """
         plot selected agent path after loading the agent path data
 
         Parameters: 
         ------
-        agent_path: dict --> the dictionary of agent path data
-        num_agents: int --> number of agents to plot
-        show: bool --> show plot
-        save: bool --> save plot
+        cur_path_record: dict --> Curiosity agents path
+        ref_path_record: dict --> reference agents path
+        pos: str --> the name of starting position folder
+        show/save: bool
         """
+        # make sure only plot for the same starting position
+        # only two reference variances are recored per starting position 
+        assert len(ref_avg_path_variance) == 2
+
+        # TODO: Only select top 
         # # Only plot path with highest [num_gents] of agent paths
         # cur_agent_keys = list(cur_agent_nov_sort.keys())
         # ref_agent_keys = list(ref_agent_nov.keys())
@@ -289,7 +266,6 @@ if __name__ == '__main__':
             ax.imshow(map.img, extent=y_lim+x_lim, cmap='Greys_r') # greyscale
             ax.invert_yaxis() # origin at top left, invert y axis
 
-            # TODO: Only select top 
             for agent in selected_agents:
                 # Splits x and y into separate lists (technically tuples)
                 x, y = zip(*all_path_record[agent])
@@ -305,11 +281,52 @@ if __name__ == '__main__':
 
             if (save):
                 # like results folder, create a plot folder for each starting pos
-                dirname = 'plots' + '/' + self.pos_folder
-                plotname = self.pos_folder + '_path_map_' + 'cur_agents' + '.svg'
+                dirname = 'plots' + '/' + pos
+                plotname = pos + '_path_map' + '.svg'
                 os.makedirs(dirname, exist_ok=True)
                 plt.savefig(os.path.join(self.dir_path, dirname, plotname))
                 pass
-            
+
             plt.show()
-'''
+
+
+
+if __name__ == '__main__':
+    fov = 64
+    image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
+    map = Map(image_path, fov, 2)
+
+    ## initialize PlotResults class
+    dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity/
+    results_folder = 'results2' 
+    plot_result = PlotResults(dir_path, results_folder)
+    ## read the starting position names and agent_names
+    pos_list, agent_names = plot_result.load_file_names(results_folder)
+
+
+    ###### Example of loading interesting starting positions and agents
+    ###### Processing can be based on multiple starting positions
+    pos_list_test = ['pos_1772_86', 'pos_2384_959']
+    agent_names_test = agent_names[:2]
+    # load all six csv
+    cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
+    ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(pos_list_test, agent_names_test)
+
+
+    ####### Examples of ploting avg_path_variance
+    ####### Processing based on per starting position
+    # plot avg_variance per starting position
+    starting_positions = ['pos_1772_86', 'pos_2384_959']
+    # starting_positions = pos_list
+    for starting_position in starting_positions:
+        print(f"processing the starting positions {starting_position}...")
+        # the load_agent_data function needs list input
+        starting_position = [starting_position]
+
+        # load all six csv
+        cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
+        ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(starting_position, agent_names)
+
+        # plot variance 
+        plot_result.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, starting_position[0], show=True, save=True)
+        plot_result.plot_paths_new(cur_path_record, ref_path_record, starting_position[0], show=True, save=True)

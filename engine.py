@@ -168,20 +168,19 @@ def run_agents(agent_list: List[Agent], path_length: int):
         print("") # Moves carriage to next line
         current_agent_id += 1
 
-def run_experiments(map: Map, num_starting_positions):
+def run_experiments(map: Map):
     """Run a series of experiments. Generate Random, Linear, and Curiosity agents for each starting position.
     Test a series of brain configurations for the Curiosity agent so we can see if there is an optimal configuration.
     """
 
     # Some high-level parameters
+    num_starting_positions = 10
     random.seed(12345)
     base_results_dir = "results2"
     path_length = 1000
     fov = 64
     grain_size = (fov, fov, 1)
     move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
-    show = False
-    save_plots = False
 
     # Defines the different possible parameters used when creating the various brains
     brain_config = {}
@@ -214,7 +213,6 @@ def run_experiments(map: Map, num_starting_positions):
     # Create results directories
     print("Creating directories and novelty files...")
     result_dirs = []
-    novelty_filenames = []
     for pos in position_list:
         dir = "pos_" + str(pos[0]) + "_" + str(pos[1])
         dir = os.path.join(base_results_dir, dir)
@@ -223,11 +221,6 @@ def run_experiments(map: Map, num_starting_positions):
         if not os.path.isdir(dir):
             os.makedirs(dir, exist_ok=True)
 
-        # Create novelty files, one for each position folder
-        nov_file = "novelty_" + str(pos[0]) + "_" + str(pos[1]) + ".txt"
-        nov_file = os.path.join(dir, nov_file)
-        novelty_filenames.append(nov_file)
-
     # Create agents
     print("Creating Linear/Random agents...")
     linear_agents = []
@@ -235,7 +228,7 @@ def run_experiments(map: Map, num_starting_positions):
     for i in range(num_starting_positions):
         pos = position_list[i]
 
-        # Lienar Agents
+        # Linear Agents
         linear_motiv = Linear(map, rate=move_rate)
         lin_agent = Agent(linear_motiv, pos)
         data_dir = os.path.join(result_dirs[i], str(lin_agent))
@@ -256,7 +249,6 @@ def run_experiments(map: Map, num_starting_positions):
         run_agents([linear_agents[i]], path_length)
         linear_agents[i].save_reconstruction_snapshot()
         linear_agents[i].save_data()
-        # save_and_plot([linear_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
 
     # Run Random agents
     print("Running Random agents...")
@@ -265,7 +257,6 @@ def run_experiments(map: Map, num_starting_positions):
         run_agents([random_agents[i]], path_length)
         random_agents[i].save_reconstruction_snapshot()
         random_agents[i].save_data()
-        # save_and_plot([random_agents[i]], novelty_filenames[i], result_dirs[i], show, save_plots)
 
     # Curiosity Agents
     print("Creating/running Curiosity agents...")
@@ -297,7 +288,6 @@ def run_experiments(map: Map, num_starting_positions):
                             run_agents([curious_agent], path_length)
                             curious_agent.save_reconstruction_snapshot()
                             curious_agent.save_data()
-                            # save_and_plot([curious_agent], novelty_filenames[i], result_dirs[i], show, save_plots)
 
                             # Print estimated time remaining
                             wall_time = time.time() - start_time
@@ -311,6 +301,94 @@ def run_experiments(map: Map, num_starting_positions):
                             print(F"Wall Time: {get_time_str(wall_time)}, ETR: {get_time_str(wall_time_eta)}")
 
                             cur_agent_num += 1
+
+def run_best_experiments(map: Map):
+    """Run a series of experiments among Random, Linear, and the Best Curiosity agents for various starting position."""
+
+    # Some high-level parameters
+    num_starting_positions = 10
+    random.seed(12345)
+    base_results_dir = "results2_best"
+    path_length = 1000
+    fov = 64
+    grain_size = (fov, fov, 1)
+    move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
+
+    # Defines the best brain config
+    best_brains = [] # In the whole universe
+    best_brains.append({'memory': ListBasedMemory(64), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 3, 'learning_rate': 0.0002})
+    best_brains.append({'memory': ListBasedMemory(100), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 3, 'learning_rate': 0.0005})
+    prob_list = [(1.0, 0.0), (0.95, 0.05), (0.9, 0.1), (0.85, 0.15), (0.8, 0.2)] # Probabilty of choosing 1st and 2nd best movements
+
+    for p in prob_list:
+        assert p[0] + p[1] == 1.0
+
+    num_curious_agents_per_pos = len(prob_list) * len(best_brains)
+
+    # Get range of possible (x,y) pairs. Subtract 2 since I don't quite know the whole usable range given the agent's size.
+    x_range = (map.fov + 2, map.img.size[0] - fov - 2)
+    y_range = (map.fov + 2, map.img.size[1] - fov - 2)
+    x_vals = []
+    y_vals = []
+    for _ in range(num_starting_positions):
+        x = random.randint(x_range[0], x_range[1])
+        if x not in x_vals:
+            x_vals.append(x)
+
+        y = random.randint(y_range[0], y_range[1])
+        if y not in y_vals:
+            y_vals.append(y)
+    position_list = list(zip(x_vals, y_vals))
+
+    # Create results directories
+    print("Creating directories and novelty files...")
+    result_dirs = []
+    for pos in position_list:
+        dir = "pos_" + str(pos[0]) + "_" + str(pos[1])
+        dir = os.path.join(base_results_dir, dir)
+        result_dirs.append(dir)
+
+        if not os.path.isdir(dir):
+            os.makedirs(dir, exist_ok=True)
+
+    # Curiosity Agents
+    print("Creating/running the best Curiosity agents...")
+    start_time = time.time()
+    for i in range(num_starting_positions):
+        p = i+1
+        pos = position_list[i]
+        pos_start_time = time.time()
+        cur_agent_num = 1
+            
+        for brain_cfg in best_brains:
+            for prob in prob_list:
+                tf.keras.backend.clear_session()
+                print(F"\nCurious Agent {cur_agent_num}/{num_curious_agents_per_pos} at Pos {p}/{num_starting_positions} {pos}:")
+                                
+                brain = Brain(**brain_cfg)
+                curious_motiv = Curiosity(map, brain, rate=move_rate, prob=prob)
+                curious_agent = Agent(curious_motiv, pos)
+                data_dir = os.path.join(result_dirs[i], str(curious_agent))
+                curious_agent.set_data_dir(data_dir)
+
+                run_agents([curious_agent], path_length)
+                curious_agent.save_reconstruction_snapshot()
+                curious_agent.save_data()
+
+                # Print estimated time remaining
+                wall_time = time.time() - start_time
+                pos_wall_time = time.time() - pos_start_time
+                pos_eta = (pos_wall_time / cur_agent_num) * (num_curious_agents_per_pos - cur_agent_num)
+                print(F"Position Wall Time: {get_time_str(pos_wall_time)}, Position ETR: {get_time_str(pos_eta)}")
+
+                num_agents_tested = cur_agent_num + i*num_curious_agents_per_pos
+                num_agents_remaining = num_starting_positions*num_curious_agents_per_pos - num_agents_tested
+                wall_time_eta = (wall_time / num_agents_tested) * num_agents_remaining
+                print(F"Wall Time: {get_time_str(wall_time)}, ETR: {get_time_str(wall_time_eta)}")
+
+                cur_agent_num += 1
 
 def save_and_plot(agent_list: List[Agent], novelty_filename: str, dirname: str, show: bool = False, save_plots: bool = True):
     """
@@ -430,5 +508,5 @@ if __name__ == "__main__":
     # run_agents([agent], 100)
     # save_and_plot([agent], "output_dir/novelty.txt", "output_dir")
 
-    num_starting_positions = 10
-    run_experiments(map, num_starting_positions)
+    # run_experiments(map)
+    run_best_experiments(map)

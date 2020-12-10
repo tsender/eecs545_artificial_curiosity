@@ -6,6 +6,7 @@ import abc
 import os
 import csv
 import random
+import numpy as np
 from PIL import Image
 
 from brain import Brain
@@ -45,7 +46,7 @@ class Motivation(metaclass=abc.ABCMeta):
 class Curiosity(Motivation):
     """This class extends Motivation and creates a curious motivation for an agent"""
 
-    def __init__(self, map: Map, brain: Brain, rate: int = 1):
+    def __init__(self, map: Map, brain: Brain, rate: int = 1, prob: Tuple[float] = (1.0, 0.0)):
         # This assigns a map to the agent, which is where they will get their directions from
         self.map = map
         # Creates a brain for the agent with some parameters
@@ -54,6 +55,7 @@ class Curiosity(Motivation):
         self.rate = rate
         self.perceived_path_novelty_history = []
         self.grain_novelty_history = []
+        self._prob = prob # Probability that we choose the 1st and 2nd best options at each step
 
     def get_map(self):
         return self.map
@@ -69,7 +71,6 @@ class Curiosity(Motivation):
         # Save novelty history
         novelty_expanded = novelty[0] + novelty[1]
         self.grain_novelty_history.append(novelty_expanded)
-        self.perceived_path_novelty_history.append(max(novelty_expanded))
 
         # Finds the potential new positions from the current position
         new_positions = self._generate_positions(position)
@@ -77,13 +78,61 @@ class Curiosity(Motivation):
         # Creates a list of booleans to act as a filter for the list of positions
         position_filter = self.map.clean_directions(new_positions)
         # Finds the index with the greatest novelty that is also a valid position
-        x,y = self._max_pos(novelty, position_filter)
+        x,y = self._max_pos_stochastic(novelty, position_filter)
+        self.perceived_path_novelty_history.append(novelty[y][x])
+
         # Add the grains to memory
         self._brain.add_grains(grains)
         # Train on the grains in memory
         self._brain.learn_grains()
         # Return the chosen position
         return new_positions[y][x]
+
+    def _max_pos_stochastic(self, novelty: List[List[int]]=[], filter: List[List[bool]]=[]):
+        """Finds the position with the maximum novelty given a filter list (which labels positions as valid or invalid),
+        but use a probability to indicate what fraction of the time you pick the best or second best position.
+        """
+        assert novelty is not [] and filter is not []
+        assert len(novelty) == len(filter)
+        assert len(novelty[0]) == len(filter[0])
+
+        num_rows = 0
+        for row in filter:
+            num_rows += sum(row)
+        pos_filter_array = np.zeros((num_rows, 3))
+
+        num_valid = 0
+        for y in range(len(novelty)):
+            for x in range(len(novelty[y])):
+                if filter[y][x]:
+                    pos_filter_array[num_valid,:] = np.array([novelty[y][x], x, y])
+                    num_valid += 1
+
+        # Initialize x,y to the best position
+        idx = np.argsort(pos_filter_array, axis=0)[:,0]
+        idx = np.flip(idx)
+        best_row = idx[0]
+        x = pos_filter_array[best_row, 1]
+        y = pos_filter_array[best_row, 2]
+
+        i = 0
+        lower = 0
+        upper = self._prob[0]
+        p = random.random()
+        for val in self._prob:
+            if lower <= p and p < upper:
+                row = idx[i]
+                x = pos_filter_array[row, 1]
+                y = pos_filter_array[row, 2]
+                break
+            i += 1
+            lower += val
+            upper += val
+            if i == num_valid:
+                break
+
+        return (int(x), int(y))
+
 
     def _max_pos(self, lst:List[List[int]]=[], filter:List[List[bool]]=[]):
         """Finds the position with the maximum novelty given a filter list (which labels positions as valid or invalid)"""
@@ -135,7 +184,7 @@ class Curiosity(Motivation):
                 writer.writerow([val])
 
     def __str__(self):
-        return "Curiosity_" + self._brain.get_name()
+        return "Curiosity_Prob" + str(self._prob[0]) + "_" + self._brain.get_name()
 
 
 class Random(Motivation):

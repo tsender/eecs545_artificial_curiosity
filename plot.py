@@ -71,7 +71,7 @@ class PlotResults():
         # read agent names in any pos_XXX_XXX folder
         # agent names are identical except the last "_Pos_XXX_XXX"
         # return agent names without "_Pos_XXX_XXX"
-        agent_names = os.listdir(os.path.join(self.results_path, pos_list[2]))
+        agent_names = os.listdir(os.path.join(self.results_path, pos_list[0]))
         agent_names_update = []
         for agent_name in agent_names:
             agent_name = agent_name.split("_")[:-3]
@@ -92,13 +92,6 @@ class PlotResults():
         list_content: a list of whatever data recorded (convert to float)
         """
         list_content = []
-        # try:
-        #     with open(filepath, 'r', newline='') as f:
-        #         csv_reader = csv.reader(f, delimiter=',')
-        #         for row in csv_reader:
-        #             list_content.append(row)
-        # except:
-        #     print("Data has not been recorded")
 
         try:
             f = open(filepath, 'r', newline='')
@@ -165,6 +158,20 @@ class PlotResults():
     
 
     ## TODO novelty_analysis needs to be improved  
+    def sort_novelty(self, cur_avg_path_variance: dict, ref_avg_path_variance: dict, inlcude_ref_agents: bool=False):
+        """
+        sort the novelty of agents by avg_path_variance
+        """
+        if (inlcude_ref_agents): # combine cur_agents and ref_agents
+            all_path_variance = {**ref_avg_path_variance, **cur_avg_path_variance}
+            avg_path_variance_sort =  dict(sorted(all_path_variance.items(), key=lambda item: item[1], reverse=True))
+
+        else:
+            avg_path_variance_sort =  dict(sorted(cur_avg_path_variance.items(), key=lambda item: item[1], reverse=True))
+
+        return avg_path_variance_sort
+
+
     def novelty_analysis(
         self, cur_grain_novelty: dict,  cur_perceived_path_novelty: dict, 
         cur_avg_path_variance: dict, ref_avg_path_variance: dict
@@ -173,9 +180,6 @@ class PlotResults():
         analyze the novalty of each agent
         Needs more improvements
         """
-        # sort novelty of curiosity agents 
-        cur_avg_path_variance_sort = dict(sorted(cur_avg_path_variance.items(), key=lambda item: item[1], reverse=True))
-
         # the derivative of agent_path_novelty
         diff_cur_perceived_path_novelty = {}
         for novelty_key in list(cur_perceived_path_novelty.keys()):
@@ -183,7 +187,7 @@ class PlotResults():
             novelty_value = np.array(novelty_value)[:, 0].tolist() # the novelty is stored by [[1], [3]] --> [1, 3]
             diff_cur_perceived_path_novelty[novelty_key] = [x_2 - x_1 for x_1, x_2 in zip(novelty_value, novelty_value[1:])]
 
-        return cur_avg_path_variance_sort, diff_cur_perceived_path_novelty
+        return diff_cur_perceived_path_novelty
     
 
     def plot_path_novelty_heatmap(
@@ -250,7 +254,7 @@ class PlotResults():
             ax.hist(agent_path_variance, bins=20, alpha=0.5)
             # annotate
             ax.set_title("Histogram of novelty of agents")
-            ax.set_xlabel("Variance of novalty")
+            ax.set_xlabel("Variance of novelty")
             ax.set_ylabel("Count agents")
 
             # mark linear and random agents
@@ -332,9 +336,9 @@ class PlotResults():
 
 
 if __name__ == '__main__':
-    fov = 64
-    image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
-    map = Map(image_path, fov, 2)
+    # fov = 64
+    # image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
+    # map = Map(image_path, fov, 2)
 
     ## initialize PlotResults class
     dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity/
@@ -344,9 +348,39 @@ if __name__ == '__main__':
     pos_list, agent_names = plot_result.load_file_names(results_folder)
 
 
-    ####################################### Example of loading interesting starting positions and agents#######################
-    ###### Processing can be based on multiple starting positions
-    # starting_positions = pos_list
+    ###################################### Compare agent 1 to 48 cross starting positions #######################
+    # compute avg_var of agent i cross all starting positions 
+    def compare_all_agents(results_path: str, pos_list: List[str], agent_names: List[str]):
+        """
+        compare the avg_variance cross all starting positions of each agent 
+        """
+        avg_variance_per_agent = {}
+        for agent_name in agent_names:
+            # loop over agent names first
+            # print(f"Processing agent {agent_name}")
+            avg_variance = []
+            for pos in pos_list:
+                # loop over position folder
+                agent_name_update = agent_name + '_' + pos.title()
+                avg_variance.append(plot_result.read_csv(os.path.join(results_path, pos, agent_name_update, 'avg_path_variance.csv'))[0][0])
+
+            avg_variance_per_agent[agent_name] = np.mean(avg_variance)
+
+        return avg_variance_per_agent
+
+    # run the function
+    results_path = os.path.join(dir_path, results_folder)
+    avg_variance_per_agent = compare_all_agents(results_path, pos_list, agent_names)
+    # print(avg_variance_per_agent)
+    avg_variance_per_agent_sort = dict(sorted(avg_variance_per_agent.items(), key=lambda item: item[1], reverse=True))
+
+    for per_agent_sort in list(avg_variance_per_agent_sort.keys()):
+        print(f"{per_agent_sort} : {avg_variance_per_agent_sort[per_agent_sort]}")
+
+
+'''
+    ###################################### Reading the top 5 curiosity agents #######################
+    ##### Processing can be based on multiple starting positions
     starting_positions = pos_list
 
     for starting_position in starting_positions:
@@ -359,19 +393,19 @@ if __name__ == '__main__':
         ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(starting_position, agent_names)
 
         # show the most ten curious agents per starting position 
-        cur_avg_path_variance_sort, diff_cur_perceived_path_novelty = plot_result.novelty_analysis(
-            cur_grain_novelty, cur_perceived_path_novelty,
-            cur_avg_path_variance, ref_avg_path_variance
+        avg_path_variance_sort = plot_result.sort_novelty(cur_avg_path_variance, ref_avg_path_variance, inlcude_ref_agents=False)
+
+        # show some other novelty analysis
+        diff_cur_perceived_path_novelty = plot_result.novelty_analysis(
+             cur_grain_novelty, cur_perceived_path_novelty,
+             cur_avg_path_variance, ref_avg_path_variance
         )
-        
-        for agent_name in list(cur_avg_path_variance_sort.keys())[:5]:
-            print(agent_name)
 
-        
-
-        # print(diff_cur_perceived_path_novelty)
-        # plot_result.plot_path_novelty_heatmap(diff_cur_perceived_path_novelty, cur_path_record, 
-                                            #   show=True, save=False)
+        for agent_name in list(avg_path_variance_sort.keys())[:5]:
+            print(f"{agent_name} : {avg_path_variance_sort[agent_name]}")
+        for ref_agent_name in list(ref_avg_path_variance.keys()):
+            print(f"{ref_agent_name} : {ref_avg_path_variance[ref_agent_name]}")
+'''
 
 
 '''

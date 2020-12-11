@@ -56,6 +56,7 @@ class Curiosity(Motivation):
         self.perceived_path_novelty_history = []
         self.grain_novelty_history = []
         self._prob = prob # Probability that we choose the 1st and 2nd best options at each step
+        assert sum(prob) == 1.0
 
     def get_map(self):
         return self.map
@@ -110,24 +111,24 @@ class Curiosity(Motivation):
 
         # Initialize x,y to the best position
         idx = np.argsort(pos_filter_array, axis=0)[:,0]
-        idx = np.flip(idx)
+        idx = np.flip(idx) # Put in descending order
         best_row = idx[0]
         x = pos_filter_array[best_row, 1]
         y = pos_filter_array[best_row, 2]
 
         i = 0
         lower = 0
-        upper = self._prob[0]
+        upper = 0
         p = random.random()
-        for val in self._prob:
+        for val in self._prob: # Assumes sum(self._prob) = 1
+            upper += val
             if lower <= p and p < upper:
                 row = idx[i]
                 x = pos_filter_array[row, 1]
                 y = pos_filter_array[row, 2]
                 break
-            i += 1
             lower += val
-            upper += val
+            i += 1
             if i == num_valid:
                 break
 

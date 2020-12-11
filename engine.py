@@ -316,10 +316,10 @@ def run_best_experiments(map: Map):
 
     # Defines the best brain config
     best_brains = [] # In the whole universe
-    best_brains.append({'memory': ListBasedMemory(64), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
-                        'train_epochs_per_iter': 3, 'learning_rate': 0.0002})
+    # best_brains.append({'memory': ListBasedMemory(64), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+    #                     'train_epochs_per_iter': 3, 'learning_rate': 0.0002})
     best_brains.append({'memory': ListBasedMemory(100), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
-                        'train_epochs_per_iter': 3, 'learning_rate': 0.0005})
+                        'train_epochs_per_iter': 3, 'learning_rate': 0.0002})
     prob_list = [(1.0, 0.0), (0.95, 0.05), (0.9, 0.1), (0.85, 0.15), (0.8, 0.2)] # Probabilty of choosing 1st and 2nd best movements
 
     for p in prob_list:

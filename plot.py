@@ -269,34 +269,42 @@ class PlotResults():
                 dirname = 'plots' + '/' + pos
                 plotname = pos + '_novelty_hist' + '.svg'
                 os.makedirs(dirname, exist_ok=True)
-                plt.savefig(os.path.join(self.dir_path, dirname, plotname))
-                
-            plt.show() 
+                plt.savefig(os.path.join(self.dir_path, dirname, plotname), bbox_inches='tight')
+            
+            if (show):
+                plt.show() 
 
 
-    def plot_paths_new(self, cur_path_record: dict, ref_path_record: dict, pos: str, show: bool=False, save: bool=False):
+    def plot_paths_new(
+        self, cur_path_record: dict, ref_path_record: dict, 
+        avg_path_variance_sort: dict, num_cur_agents: int,
+        pos: str, show: bool=False, save: bool=False
+    ):
         """
         plot selected agent path after loading the agent path data
 
         Parameters: 
         ------
-        cur_path_record: dict --> Curiosity agents path
+        cur_path_record: dict --> Curiosity agents path without ref agents
         ref_path_record: dict --> reference agents path
+        avg_path_variance_sort --> sort cur_agents variance
+        num_cur_agents: int --> number of cur_agents to plot
         pos: str --> the name of starting position folder
         show/save: bool
         """
         # make sure only plot for the same starting position
         # only two reference variances are recored per starting position 
-        assert len(ref_avg_path_variance) == 2
+        assert len(ref_path_record) == 2
 
         # TODO: Only select top 
-        # # Only plot path with highest [num_gents] of agent paths
-        # cur_agent_keys = list(cur_agent_nov_sort.keys())
-        # ref_agent_keys = list(ref_agent_nov.keys())
-        # selected_agents = ref_agent_keys + cur_agent_keys[:num_agents]
+        # Only plot path with highest [num_gents] of agent paths
+        cur_agent_keys = list(avg_path_variance_sort.keys())[:num_cur_agents]
+        
+        cur_path_record_selected = {cur_agent_key:cur_path_record[cur_agent_key] for cur_agent_key in cur_agent_keys}
+        ref_agent_keys = list(ref_path_record.keys())
 
         # merge ref_agents and cur_agents
-        all_path_record = {**ref_path_record, **cur_path_record}
+        all_path_record = {**ref_path_record, **cur_path_record_selected}
         selected_agents = list(all_path_record.keys())
 
         # plot path map
@@ -328,27 +336,104 @@ class PlotResults():
                 dirname = 'plots' + '/' + pos
                 plotname = pos + '_path_map' + '.svg'
                 os.makedirs(dirname, exist_ok=True)
-                plt.savefig(os.path.join(self.dir_path, dirname, plotname))
+                plt.savefig(os.path.join(self.dir_path, dirname, plotname), bbox_inches='tight')
                 pass
 
-            plt.show()
+            if (show):
+                plt.show()
 
 
 
 if __name__ == '__main__':
-    # fov = 64
-    # image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
-    # map = Map(image_path, fov, 2)
+    fov = 64
+    image_path = os.path.join(os.path.dirname(__file__), 'data', 'mars.png') 
+    map = Map(image_path, fov, 2)
 
-    ## initialize PlotResults class
+    ############################ initialize PlotResults class from results2 folder #############################
     dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity/
-    results_folder = 'results2' 
+    results_folder = 'results2_best' 
     plot_result = PlotResults(dir_path, results_folder)
     ## read the starting position names and agent_names
     pos_list, agent_names = plot_result.load_file_names(results_folder)
 
 
-    ###################################### Compare agent 1 to 48 cross starting positions #######################
+
+    ###################################### Reading the top 5 curiosity agents #######################
+    ##### Processing can be based on multiple starting positions
+    starting_positions = pos_list
+
+    for starting_position in starting_positions:
+        print(f"processing the starting positions {starting_position}...")
+        # the load_agent_data function needs list input
+        starting_position = [starting_position]
+
+        # load all six csv
+        cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
+        ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(starting_position, agent_names)
+
+        # show the most ten curious agents per starting position 
+        avg_path_variance_sort = plot_result.sort_novelty(cur_avg_path_variance, ref_avg_path_variance, inlcude_ref_agents=False)
+
+        fig, ax = plt.subplots(figsize=(8, 6), dpi=150)
+
+        # hist plot
+        ax.hist(list(cur_avg_path_variance.values()), bins=10 alpha=0.5)
+        # annotate
+        ax.set_title("Histogram of novelty of agents")
+        ax.set_xlabel("Variance of novelty")
+        ax.set_ylabel("Count agents")
+
+        plt.show()
+
+
+        # plot variance 
+        # plot_result.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, starting_position[0], show=True, save=False)
+        # plot_result.plot_paths_new(
+        #     cur_path_record, ref_path_record, avg_path_variance_sort, 
+        #     num_cur_agents=10, pos=starting_position[0], show=False, save=False
+        # )
+
+        # # show some other novelty analysisTure
+        # diff_cur_perceived_path_novelty = plot_result.novelty_analysis(
+        #      cur_grain_novelty, cur_perceived_path_novelty,
+        #      cur_avg_path_variance, ref_avg_path_variance
+        # )
+
+        # for agent_name in list(avg_path_variance_sort.keys())[:5]:
+        #     print(f"{agent_name} : {avg_path_variance_sort[agent_name]}")
+        # for ref_agent_name in list(ref_avg_path_variance.keys()):
+        #     print(f"{ref_agent_name} : {ref_avg_path_variance[ref_agent_name]}")
+
+
+'''
+    ######################################## Examples of ploting avg_path_variance #############################################
+    ####### Processing based on per starting position
+    # plot avg_variance per starting position
+    starting_positions = ['pos_1772_86', 'pos_2384_959']
+
+    for starting_position in starting_positions:
+        print(f"processing the starting positions {starting_position}...")
+        # the load_agent_data function needs list input
+        starting_position = [starting_position]
+
+        # load all six csv
+        cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
+        ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(starting_position, agent_names)
+
+        # plot variance 
+        plot_result.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, starting_position[0], show=False, save=False)
+        plot_result.plot_paths_new(cur_path_record, ref_path_record, starting_position[0], show=False, save=False)
+'''
+
+
+'''
+    ########################## initialize PlotResults class from results2_best folder #######################
+    dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity/
+    results_folder = 'results2_best' 
+    plot_result = PlotResults(dir_path, results_folder)
+    ## read the starting position names and agent_names
+    pos_list, agent_names = plot_result.load_file_names(results_folder)
+
     # compute avg_var of agent i cross all starting positions 
     def compare_all_agents(results_path: str, pos_list: List[str], agent_names: List[str]):
         """
@@ -376,54 +461,36 @@ if __name__ == '__main__':
 
     for per_agent_sort in list(avg_variance_per_agent_sort.keys()):
         print(f"{per_agent_sort} : {avg_variance_per_agent_sort[per_agent_sort]}")
-
-
-'''
-    ###################################### Reading the top 5 curiosity agents #######################
-    ##### Processing can be based on multiple starting positions
-    starting_positions = pos_list
-
-    for starting_position in starting_positions:
-        print(f"processing the starting positions {starting_position}...")
-        # the load_agent_data function needs list input
-        starting_position = [starting_position]
-
-        # load all six csv
-        cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
-        ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(starting_position, agent_names)
-
-        # show the most ten curious agents per starting position 
-        avg_path_variance_sort = plot_result.sort_novelty(cur_avg_path_variance, ref_avg_path_variance, inlcude_ref_agents=False)
-
-        # show some other novelty analysis
-        diff_cur_perceived_path_novelty = plot_result.novelty_analysis(
-             cur_grain_novelty, cur_perceived_path_novelty,
-             cur_avg_path_variance, ref_avg_path_variance
-        )
-
-        for agent_name in list(avg_path_variance_sort.keys())[:5]:
-            print(f"{agent_name} : {avg_path_variance_sort[agent_name]}")
-        for ref_agent_name in list(ref_avg_path_variance.keys()):
-            print(f"{ref_agent_name} : {ref_avg_path_variance[ref_agent_name]}")
 '''
 
 
 '''
-    ######################################## Examples of ploting avg_path_variance #############################################
-    ####### Processing based on per starting position
-    # plot avg_variance per starting position
-    starting_positions = ['pos_1772_86', 'pos_2384_959']
+###################################### Compare agent 1 to 48 cross starting positions #######################
+    # compute avg_var of agent i cross all starting positions 
+    def compare_all_agents(results_path: str, pos_list: List[str], agent_names: List[str]):
+        """
+        compare the avg_variance cross all starting positions of each agent 
+        """
+        avg_variance_per_agent = {}
+        for agent_name in agent_names:
+            # loop over agent names first
+            # print(f"Processing agent {agent_name}")
+            avg_variance = []
+            for pos in pos_list:
+                # loop over position folder
+                agent_name_update = agent_name + '_' + pos.title()
+                avg_variance.append(plot_result.read_csv(os.path.join(results_path, pos, agent_name_update, 'avg_path_variance.csv'))[0][0])
 
-    for starting_position in starting_positions:
-        print(f"processing the starting positions {starting_position}...")
-        # the load_agent_data function needs list input
-        starting_position = [starting_position]
+            avg_variance_per_agent[agent_name] = np.mean(avg_variance)
 
-        # load all six csv
-        cur_grain_novelty, cur_path_record, cur_perceived_path_novelty, cur_avg_path_variance, \
-        ref_path_record, ref_avg_path_variance = plot_result.load_agent_data(starting_position, agent_names)
+        return avg_variance_per_agent
 
-        # plot variance 
-        plot_result.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, starting_position[0], show=False, save=False)
-        plot_result.plot_paths_new(cur_path_record, ref_path_record, starting_position[0], show=False, save=False)
+    # run the function
+    results_path = os.path.join(dir_path, results_folder)
+    avg_variance_per_agent = compare_all_agents(results_path, pos_list, agent_names)
+    # print(avg_variance_per_agent)
+    avg_variance_per_agent_sort = dict(sorted(avg_variance_per_agent.items(), key=lambda item: item[1], reverse=True))
+
+    for per_agent_sort in list(avg_variance_per_agent_sort.keys()):
+        print(f"{per_agent_sort} : {avg_variance_per_agent_sort[per_agent_sort]}")
 '''

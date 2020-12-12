@@ -321,15 +321,19 @@ class PlotResults():
             for agent in selected_agents:
                 # Splits x and y into separate lists (technically tuples)
                 x, y = zip(*all_path_record[agent])
-                ax.plot(x, y, label=agent, alpha=0.5)
+                # ax.plot(x, y, label=agent, alpha=0.5)
+                ax.plot(x, y, alpha=0.5)
 
-            # Annotate the chart
-            ax.set_title("Combined Agent Paths")
-            # Place the legend outside of the chart since we never know where the
-            # agents are going to go
-            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title='Legend', fontsize=6)
-            # Fix the alignment of the image on export
-            ax.set_position([0.1, 0, 0.5, 1.0])
+
+            # # Annotate the chart
+            # ax.set_title("Combined Agent Paths")
+            # # Place the legend outside of the chart since we never know where the
+            # # agents are going to go
+            # ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title='Legend', fontsize=6)
+            label = ['Linear agent', 'Random agent']
+            ax.legend(label, loc='upper left', fontsize=8)
+            # # Fix the alignment of the image on export
+            # ax.set_position([0.1, 0, 0.5, 1.0])
 
             if (save):
                 # like results folder, create a plot folder for each starting pos
@@ -351,7 +355,7 @@ if __name__ == '__main__':
 
     ############################ initialize PlotResults class from results2 folder #############################
     dir_path = os.path.dirname(__file__) # ../eecs545_artificial_curiosity/
-    results_folder = 'results2_best' 
+    results_folder = 'results2' 
     plot_result = PlotResults(dir_path, results_folder)
     ## read the starting position names and agent_names
     pos_list, agent_names = plot_result.load_file_names(results_folder)
@@ -373,25 +377,12 @@ if __name__ == '__main__':
 
         # show the most ten curious agents per starting position 
         avg_path_variance_sort = plot_result.sort_novelty(cur_avg_path_variance, ref_avg_path_variance, inlcude_ref_agents=False)
-
-        fig, ax = plt.subplots(figsize=(8, 6), dpi=150)
-
-        # hist plot
-        ax.hist(list(cur_avg_path_variance.values()), bins=10 alpha=0.5)
-        # annotate
-        ax.set_title("Histogram of novelty of agents")
-        ax.set_xlabel("Variance of novelty")
-        ax.set_ylabel("Count agents")
-
-        plt.show()
-
-
         # plot variance 
         # plot_result.plot_path_variance(cur_avg_path_variance, ref_avg_path_variance, starting_position[0], show=True, save=False)
-        # plot_result.plot_paths_new(
-        #     cur_path_record, ref_path_record, avg_path_variance_sort, 
-        #     num_cur_agents=10, pos=starting_position[0], show=False, save=False
-        # )
+        plot_result.plot_paths_new(
+            cur_path_record, ref_path_record, avg_path_variance_sort, 
+            num_cur_agents=10, pos=starting_position[0], show=False, save=False
+        )
 
         # # show some other novelty analysisTure
         # diff_cur_perceived_path_novelty = plot_result.novelty_analysis(

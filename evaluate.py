@@ -44,7 +44,7 @@ def avg_pixelwise_var(images_seen: np.int16):
     Returns
     -------
 
-    The aaverage pixelwise variation across all images, as a float
+    The average pixelwise variation across all images, as a float
     """
 
     # Computes the variance
@@ -55,7 +55,7 @@ def avg_pixelwise_var(images_seen: np.int16):
 
 
 if __name__ == "__main__":
-    m = Map("./data/mars.png", 100, 2)
+    m = Map("./data/mars.png", 64, 2)
 
     images = load_from_map(m, [(100, 100),(200,200),(300,300)])
     print(avg_pixelwise_var(images))

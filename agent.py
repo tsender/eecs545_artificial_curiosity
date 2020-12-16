@@ -53,7 +53,7 @@ class Curiosity(Motivation):
         # TODO: These are not optimal, they have been set for testing purposes
         self._brain = brain
         self.rate = rate
-        self.perceived_path_novelty_history = []
+        self.novelty_history = []
         self.grain_novelty_history = []
         self._prob = prob # Probability that we choose the 1st and 2nd best options at each step
 
@@ -79,7 +79,7 @@ class Curiosity(Motivation):
         position_filter = self.map.clean_directions(new_positions)
         # Finds the index with the greatest novelty that is also a valid position
         x,y = self._max_pos_stochastic(novelty, position_filter)
-        self.perceived_path_novelty_history.append(novelty[y][x])
+        self.novelty_history.append(novelty[y][x])
 
         # Add the grains to memory
         self._brain.add_grains(grains)
@@ -109,25 +109,26 @@ class Curiosity(Motivation):
                     num_valid += 1
 
         # Initialize x,y to the best position
-        idx = np.argsort(pos_filter_array, axis=0)[:,0]
-        idx = np.flip(idx)
+        idx = np.argsort(pos_filter_array, axis=0)[:,0] # Get sorted indeces based on novelty
+        idx = np.flip(idx) # Flip to decreasing order
         best_row = idx[0]
         x = pos_filter_array[best_row, 1]
         y = pos_filter_array[best_row, 2]
 
+        # Find (x,y) position to move to
         i = 0
         lower = 0
-        upper = self._prob[0]
+        upper = 0
         p = random.random()
         for val in self._prob:
+            upper += val
             if lower <= p and p < upper:
                 row = idx[i]
                 x = pos_filter_array[row, 1]
                 y = pos_filter_array[row, 2]
                 break
-            i += 1
             lower += val
-            upper += val
+            i += 1
             if i == num_valid:
                 break
 
@@ -173,14 +174,14 @@ class Curiosity(Motivation):
 
     def save_data(self, data_dir: str):
         # Save grain novelty history
-        with open(os.path.join(data_dir, "grain_novelty.csv"), "w") as f:
+        with open(os.path.join(data_dir, "grain_novelty_history.csv"), "w") as f:
             writer = csv.writer(f)
             writer.writerows(self.grain_novelty_history)
 
-        # Save grain novelty history
-        with open(os.path.join(data_dir, "perceived_path_novelty.csv"), "w") as f:
+        # Save perceived novelty history
+        with open(os.path.join(data_dir, "novelty_history.csv"), "w") as f:
             writer = csv.writer(f)
-            for val in self.perceived_path_novelty_history:
+            for val in self.novelty_history:
                 writer.writerow([val])
 
     def __str__(self):
@@ -350,8 +351,10 @@ class Agent:
     def get_map(self):
         return self._motivation.get_map()
 
-    def get_path_novelty(self):
-        """Return average path variance. Note, images are converted to the range [-1,1]"""
+    def get_explorational_value(self):
+        """Return average path variance (our definition of explorational value). 
+        Note, images are converted to the range [-1,1]
+        """
         images = evaluate.load_from_map(self.get_map(), self.history)
         return evaluate.avg_pixelwise_var(images)
 
@@ -366,7 +369,7 @@ class Agent:
         # Save avg path variance
         with open(os.path.join(self.data_dir, "avg_path_variance.csv"), "w") as f:
             writer = csv.writer(f)
-            writer.writerow([self.get_path_novelty()])
+            writer.writerow([self.get_explorational_value()])
 
         # Save any additional data relevant to the motivation (applies to Curiosity)
         self._motivation.save_data(self.data_dir)
@@ -376,11 +379,11 @@ class Agent:
 
 
 if __name__ == "__main__":
-    from memory import PriorityBasedMemory, ListBasedMemory
+    from memory import PriorityMemory, CircularMemory
     fov = 64 # Allowed FOVs = {32, 64, 128}
     map = Map('data/mars.png', fov, 2)
 
-    brain = Brain(PriorityBasedMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
+    brain = Brain(PriorityMemory(64), (fov,fov,1), nov_thresh=0.25, novelty_loss_type='MSE', train_epochs_per_iter=1)
     print(Curiosity(map=map, brain=brain).get_from_position((fov, fov)))
     print(Random(map=map).get_from_position((fov, fov)))
     print(Linear(map=map).get_from_position((fov, fov)))
@@ -388,4 +391,4 @@ if __name__ == "__main__":
     agent = Agent(Curiosity(map=map, brain=brain), (2000,1000))
     agent.step()
     print("novelty")
-    print(agent.get_path_novelty())
+    print(agent.get_explorational_value())

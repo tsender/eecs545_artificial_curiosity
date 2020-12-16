@@ -11,7 +11,7 @@ import tensorflow as tf
 
 from map import Map
 from agent import Agent, Curiosity, Linear, Random, Motivation
-from memory import PriorityBasedMemory, ListBasedMemory
+from memory import PriorityMemory, CircularMemory
 from brain import Brain
 
 # TODO: Might want to make more efficient so that graphing doesn't take so long
@@ -119,7 +119,7 @@ def plot_paths(map: Map, agent_list: List[Agent], show: bool, save: bool, dirnam
         plt.close('all')
 
 
-def run_agents(agent_list: List[Agent], path_length: int):
+def run_agents(agent_list: List[Agent], time_steps: int):
     """Runs an experiment on the provided agents.
     
     Params
@@ -127,8 +127,8 @@ def run_agents(agent_list: List[Agent], path_length: int):
     agent_list: List[Agent]
         A list of Agent instances to be ran
     
-    path_length: int
-        The number of steps that each agent should take.
+    time_steps: int
+        The number of time steps to simulate the agent for
 
     Returns
     -------
@@ -146,7 +146,7 @@ def run_agents(agent_list: List[Agent], path_length: int):
     for agent in agent_list:
         # print(F"Running agent: {str(agent)}")
         t_start = time.time()
-        for i in range(path_length):
+        for i in range(time_steps):
             p = i+1
             # Error handling in case something goes wrong
             try:
@@ -157,11 +157,11 @@ def run_agents(agent_list: List[Agent], path_length: int):
                 print(e)
                 return
             t_elapsed = time.time() - t_start
-            agent_eta = (t_elapsed / p) * (path_length - p)
+            agent_eta = (t_elapsed / p) * (time_steps - p)
             agent_eta_str = get_time_str(agent_eta)
         
             # Update progress bar for agent
-            frac = p / float(path_length)
+            frac = p / float(time_steps)
             left = int(progress_bar_width * frac)
             right = progress_bar_width - left
             print(f'\rAgent {current_agent_id}/{num_agents} Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}% ETR: {agent_eta_str}', sep='', end='', flush=True)
@@ -176,19 +176,19 @@ def run_experiments(map: Map):
     # Some high-level parameters
     num_starting_positions = 10
     random.seed(12345)
-    base_results_dir = "results2"
-    path_length = 1000
+    base_results_dir = "results_param"
+    max_time_steps = 1000
     fov = 64
     grain_size = (fov, fov, 1)
     move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
 
     # Defines the different possible parameters used when creating the various brains
     brain_config = {}
-    brain_config['memory_type'] = [PriorityBasedMemory, ListBasedMemory]
-    brain_config['memory_length'] = [32, 64]
+    brain_config['memory_type'] = [PriorityMemory, CircularMemory]
+    brain_config['memory_length'] = [16, 32, 48, 64] # 80]
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
     brain_config['train_epochs_per_iter'] = [1, 2, 3]
-    brain_config['learning_rate'] = [0.0002, 0.0004]
+    brain_config['learning_rate'] = [0.0001, 0.0002, 0.0003, 0.0004]
 
     # Calculate number of different curious agents per position
     num_curious_agents_per_pos = 1
@@ -246,7 +246,7 @@ def run_experiments(map: Map):
     print("Running Linear agents...")
     for i in range(num_starting_positions):
         print(F"\nLinear Agent {i+1}/{num_starting_positions}:")
-        run_agents([linear_agents[i]], path_length)
+        run_agents([linear_agents[i]], max_time_steps)
         linear_agents[i].save_reconstruction_snapshot()
         linear_agents[i].save_data()
 
@@ -254,7 +254,7 @@ def run_experiments(map: Map):
     print("Running Random agents...")
     for i in range(num_starting_positions):
         print(F"\nRandom Agent {i+1}/{num_starting_positions}:")
-        run_agents([random_agents[i]], path_length)
+        run_agents([random_agents[i]], max_time_steps)
         random_agents[i].save_reconstruction_snapshot()
         random_agents[i].save_data()
 
@@ -284,8 +284,9 @@ def run_experiments(map: Map):
                             curious_agent = Agent(curious_motiv, pos)
                             data_dir = os.path.join(result_dirs[i], str(curious_agent))
                             curious_agent.set_data_dir(data_dir)
+                            print(str(curious_agent))
 
-                            run_agents([curious_agent], path_length)
+                            run_agents([curious_agent], max_time_steps)
                             curious_agent.save_reconstruction_snapshot()
                             curious_agent.save_data()
 
@@ -308,17 +309,17 @@ def run_best_experiments(map: Map):
     # Some high-level parameters
     num_starting_positions = 10
     random.seed(12345)
-    base_results_dir = "results2_best"
-    path_length = 1000
+    base_results_dir = "results_best"
+    max_time_steps = 1000
     fov = 64
     grain_size = (fov, fov, 1)
     move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
 
     # Defines the best brain config
     best_brains = [] # In the whole universe
-    best_brains.append({'memory': ListBasedMemory(64), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+    best_brains.append({'memory': CircularMemory(64), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
                         'train_epochs_per_iter': 3, 'learning_rate': 0.0002})
-    best_brains.append({'memory': ListBasedMemory(100), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+    best_brains.append({'memory': CircularMemory(100), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
                         'train_epochs_per_iter': 3, 'learning_rate': 0.0005})
     prob_list = [(1.0, 0.0), (0.95, 0.05), (0.9, 0.1), (0.85, 0.15), (0.8, 0.2)] # Probabilty of choosing 1st and 2nd best movements
 
@@ -372,8 +373,9 @@ def run_best_experiments(map: Map):
                 curious_agent = Agent(curious_motiv, pos)
                 data_dir = os.path.join(result_dirs[i], str(curious_agent))
                 curious_agent.set_data_dir(data_dir)
+                print(str(curious_agent))
 
-                run_agents([curious_agent], path_length)
+                run_agents([curious_agent], max_time_steps)
                 curious_agent.save_reconstruction_snapshot()
                 curious_agent.save_data()
 
@@ -389,51 +391,6 @@ def run_best_experiments(map: Map):
                 print(F"Wall Time: {get_time_str(wall_time)}, ETR: {get_time_str(wall_time_eta)}")
 
                 cur_agent_num += 1
-
-def save_and_plot(agent_list: List[Agent], novelty_filename: str, dirname: str, show: bool = False, save_plots: bool = True):
-    """
-    Save the path record of each agent as a csv file, save the novelty to a .txt file, and plot and save graphs.
-    Note: When plotting, it will assume all agents use the same map.
-    
-    Params:
-    ------
-    agent_list: List[Agent]
-        A list of agent whose path coordinates to be saved
-
-    novelty_filename: str
-        The filename for storing the agents' novelty
-    
-    dirname: str
-        The directory name where the csv file will be saved
-
-    show: bool
-        Whether the graphs should be displayed
-
-    save_plots: bool
-        Whether the plots should be saved to the disk or not
-
-    Returns:
-    ------
-    None
-    """
-
-    # Save the agent's path
-    print("Saving data...")
-    os.makedirs(dirname, exist_ok=True)
-    for agent in agent_list:
-        fields = ['x', 'y']
-        
-        # Save the path coordinates to a file
-        with open(dirname + '/' + str(agent) + "_path_record" + '.csv', 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(fields)
-            writer.writerows(agent.history)
-
-        # Save the agent's novelty
-        with open(novelty_filename, "a") as f:
-            f.write(str(agent) + ": " + str(agent.get_path_novelty()) + "\n")
-
-    plot_paths(agent_list[0].get_map(), agent_list, show, save_plots, dirname)
         
 def load_agent_data(path: str):
     """
@@ -498,15 +455,14 @@ def get_time_str(time_in): # time_in in seconds
 
 if __name__ == "__main__":
     # Sample code
-    fov = 64 # Allowed FOVs = {32, 64, 128}
-    map = Map('data/mars.png', fov, 2)
-
     # pos = (2000, 1000)
-    # brain = Brain(PriorityBasedMemory(64), (fov,fov,1), novelty_loss_type='MSE', train_epochs_per_iter=1)
+    # brain = Brain(PriorityMemory(64), (fov,fov,1), novelty_loss_type='MSE', train_epochs_per_iter=1)
     # agent = Agent(Curiosity(map=map, brain=brain, rate=8), pos)
     # novelty_filename = "output_dir/novelty.txt"
     # run_agents([agent], 100)
     # save_and_plot([agent], "output_dir/novelty.txt", "output_dir")
 
-    # run_experiments(map)
-    run_best_experiments(map)
+    fov = 64 # Allowed FOVs = {32, 64, 128}
+    map = Map('data/mars.png', fov, 2)
+    run_experiments(map)
+    # run_best_experiments(map)

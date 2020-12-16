@@ -65,7 +65,7 @@ class BaseMemory(metaclass=abc.ABCMeta):
     def __repr__(self):
         return pprint.pformat(vars(self))
 
-class PriorityBasedMemory(BaseMemory):
+class PriorityMemory(BaseMemory):
     """
     Memory class that uses a fixed-length priority queue to store experiences based on their novelty.
     Low novelty corresponds to higher priority (also makes it easier to remove the experience).
@@ -93,10 +93,10 @@ class PriorityBasedMemory(BaseMemory):
         Returns
             The name of the memory object as a string
         """
-        return "PriorityMem" + str(self._max_length)
+        return "PriorityMem_Mem" + str(self._max_length)
 
 
-class ListBasedMemory(BaseMemory):
+class CircularMemory(BaseMemory):
     """
     Memory class that uses a simple fixed-length list to store the latest experiences.
     """
@@ -122,12 +122,12 @@ class ListBasedMemory(BaseMemory):
         Returns
             The name of the memory object as a string
         """
-        return "ListMem" + str(self._max_length)
+        return "CircMem_Mem" + str(self._max_length)
 
 if __name__ == "__main__":
-    print("Priority Based Memory")
+    print("Priority Memory")
     print = pprint.PrettyPrinter(indent=4).pprint
-    m = PriorityBasedMemory(5)
+    m = PriorityMemory(5)
     for i in range(5):
         m.push(Experience(i, None))
 
@@ -138,8 +138,8 @@ if __name__ == "__main__":
     for i in m.as_list():
         print(i.novelty)
 
-    print("List Based Memory")
-    m = ListBasedMemory(5)
+    print("Circular Memory")
+    m = CircularMemory(5)
     for i in range(5):
         m.push(Experience(i, None))
 

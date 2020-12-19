@@ -168,6 +168,50 @@ def run_agents(agent_list: List[Agent], time_steps: int):
         print("") # Moves carriage to next line
         current_agent_id += 1
 
+def run_agent(agent: Agent, time_steps: int):
+    """Runs an experiment on the provided agents.
+    
+    Params
+    ------
+    agent: Agent
+        A Agen to run
+    
+    time_steps: int
+        The number of time steps to simulate the agent for
+
+    Returns
+    -------
+    None
+
+    """
+
+    progress_bar_width = 50
+    
+    # print(F"Running agent: {str(agent)}")
+    t_start = time.time()
+    for i in range(time_steps):
+        p = i+1
+        # Error handling in case something goes wrong
+        try:
+            agent.step()
+        except Exception as e:
+            # TODO: Should probably replace this with a stack trace
+            print('Problem at step ', i, " with agent:", agent)
+            print(e)
+            return False
+        t_elapsed = time.time() - t_start
+        agent_eta = (t_elapsed / p) * (time_steps - p)
+        agent_eta_str = get_time_str(agent_eta)
+    
+        # Update progress bar for agent
+        frac = p / float(time_steps)
+        left = int(progress_bar_width * frac)
+        right = progress_bar_width - left
+        print(f'\rAgent Experiment Progress [', '#' * left, ' ' * right, ']', f' {frac*100:.0f}% ETR: {agent_eta_str}', sep='', end='', flush=True)
+    print("") # Moves carriage to next line
+    
+    return True
+
 def run_experiments(map: Map):
     """Run a series of experiments. Generate Random, Linear, and Curiosity agents for each starting position.
     Test a series of brain configurations for the Curiosity agent so we can see if there is an optimal configuration.
@@ -181,11 +225,13 @@ def run_experiments(map: Map):
     fov = 64
     grain_size = (fov, fov, 1)
     move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
+    log_file = os.path.join(base_results_dir, "log.txt")
+    position_order_file = os.path.join(base_results_dir, "position_order.txt")
 
     # Defines the different possible parameters used when creating the various brains
     brain_config = {}
     brain_config['memory_type'] = [PriorityMemory, CircularMemory]
-    brain_config['memory_length'] = [16] # 32 #, 48, 64, # 80]
+    brain_config['memory_length'] = [40] # TODO: [40, 60, 80] DONE [20]
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
     brain_config['train_epochs_per_iter'] = [1, 2, 3]
     brain_config['learning_rate'] = [0.0001, 0.0002, 0.0003, 0.0004]
@@ -210,8 +256,13 @@ def run_experiments(map: Map):
             y_vals.append(y)
     position_list = list(zip(x_vals, y_vals))
 
+    print(F"Writing position order to file: {position_order_file}")
+    with open(position_order_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(position_list) # x,y format
+
     # Create results directories
-    print("Creating directories and novelty files...")
+    print("Creating directories...")
     result_dirs = []
     for pos in position_list:
         dir = "pos_" + str(pos[0]) + "_" + str(pos[1])
@@ -220,6 +271,9 @@ def run_experiments(map: Map):
 
         if not os.path.isdir(dir):
             os.makedirs(dir, exist_ok=True)
+
+    with open(log_file, "a") as f:
+        f.write("STARTING NEW EXPERIMENT: " + base_results_dir + "\n")
 
     # Create agents
     print("Creating Linear/Random agents...")
@@ -246,17 +300,23 @@ def run_experiments(map: Map):
     print("Running Linear agents...")
     for i in range(num_starting_positions):
         print(F"\nLinear Agent {i+1}/{num_starting_positions}:")
-        run_agents([linear_agents[i]], max_time_steps)
+        success = run_agent(linear_agents[i], max_time_steps)
         linear_agents[i].save_reconstruction_snapshot()
         linear_agents[i].save_data()
+
+        with open(log_file, "a") as f:
+            f.write(str(linear_agents[i]) + ": " + str(success) + "\n")
 
     # Run Random agents
     print("Running Random agents...")
     for i in range(num_starting_positions):
         print(F"\nRandom Agent {i+1}/{num_starting_positions}:")
-        run_agents([random_agents[i]], max_time_steps)
+        success = run_agent(random_agents[i], max_time_steps)
         random_agents[i].save_reconstruction_snapshot()
         random_agents[i].save_data()
+
+        with open(log_file, "a") as f:
+            f.write(str(random_agents[i]) + ": " + str(success) + "\n")
 
     # Curiosity Agents
     print("Creating/running Curiosity agents...")
@@ -266,6 +326,10 @@ def run_experiments(map: Map):
         pos = position_list[i]
         pos_start_time = time.time()
         cur_agent_num = 1
+
+        # if i != num_starting_positions - 1:
+        #     print(F"Skipping position {i}")
+        #     continue
 
         for mem in brain_config['memory_type']:
             for mem_len in brain_config['memory_length']:
@@ -286,9 +350,12 @@ def run_experiments(map: Map):
                             curious_agent.set_data_dir(data_dir)
                             print(str(curious_agent))
 
-                            run_agents([curious_agent], max_time_steps)
+                            success = run_agent(curious_agent, max_time_steps)
                             curious_agent.save_reconstruction_snapshot()
                             curious_agent.save_data()
+
+                            with open(log_file, "a") as f:
+                                f.write(str(curious_agent) + ": " + str(success) + "\n")
 
                             # Print estimated time remaining
                             wall_time = time.time() - start_time

@@ -231,7 +231,7 @@ def run_experiments(map: Map):
     # Defines the different possible parameters used when creating the various brains
     brain_config = {}
     brain_config['memory_type'] = [PriorityMemory, CircularMemory]
-    brain_config['memory_length'] = [40] # TODO: [40, 60, 80] DONE [20]
+    brain_config['memory_length'] = [80] # TODO: [80, 100] DONE [20, 40, 60]
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
     brain_config['train_epochs_per_iter'] = [1, 2, 3]
     brain_config['learning_rate'] = [0.0001, 0.0002, 0.0003, 0.0004]
@@ -381,6 +381,8 @@ def run_best_experiments(map: Map):
     fov = 64
     grain_size = (fov, fov, 1)
     move_rate = 8 # Larger than 1 increases possible coverage of the map by the agent
+    log_file = os.path.join(base_results_dir, "log.txt")
+    position_order_file = os.path.join(base_results_dir, "position_order.txt")
 
     # Defines the best brain config
     best_brains = [] # In the whole universe
@@ -410,8 +412,13 @@ def run_best_experiments(map: Map):
             y_vals.append(y)
     position_list = list(zip(x_vals, y_vals))
 
+    print(F"Writing position order to file: {position_order_file}")
+    with open(position_order_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(position_list) # x,y format
+
     # Create results directories
-    print("Creating directories and novelty files...")
+    print("Creating directories...")
     result_dirs = []
     for pos in position_list:
         dir = "pos_" + str(pos[0]) + "_" + str(pos[1])
@@ -420,6 +427,49 @@ def run_best_experiments(map: Map):
 
         if not os.path.isdir(dir):
             os.makedirs(dir, exist_ok=True)
+
+    # Create Linear/Random agents for convenience so their data is next to the best agents' data
+    print("Creating Linear/Random agents...")
+    linear_agents = []
+    random_agents = []
+    for i in range(num_starting_positions):
+        pos = position_list[i]
+
+        # Linear Agents
+        linear_motiv = Linear(map, rate=move_rate)
+        lin_agent = Agent(linear_motiv, pos)
+        data_dir = os.path.join(result_dirs[i], str(lin_agent))
+        lin_agent.set_data_dir(data_dir)
+        linear_agents.append(lin_agent)
+        
+        # Random Agents
+        rand_motiv = Random(map, rate=move_rate)
+        rand_agent = Agent(rand_motiv, pos)
+        data_dir = os.path.join(result_dirs[i], str(rand_agent))
+        rand_agent.set_data_dir(data_dir)
+        random_agents.append(rand_agent)
+
+    # Run Linear agents
+    print("Running Linear agents...")
+    for i in range(num_starting_positions):
+        print(F"\nLinear Agent {i+1}/{num_starting_positions}:")
+        success = run_agent(linear_agents[i], max_time_steps)
+        linear_agents[i].save_reconstruction_snapshot()
+        linear_agents[i].save_data()
+
+        with open(log_file, "a") as f:
+            f.write(str(linear_agents[i]) + ": " + str(success) + "\n")
+
+    # Run Random agents
+    print("Running Random agents...")
+    for i in range(num_starting_positions):
+        print(F"\nRandom Agent {i+1}/{num_starting_positions}:")
+        success = run_agent(random_agents[i], max_time_steps)
+        random_agents[i].save_reconstruction_snapshot()
+        random_agents[i].save_data()
+
+        with open(log_file, "a") as f:
+            f.write(str(random_agents[i]) + ": " + str(success) + "\n")
 
     # Curiosity Agents
     print("Creating/running the best Curiosity agents...")
@@ -442,9 +492,12 @@ def run_best_experiments(map: Map):
                 curious_agent.set_data_dir(data_dir)
                 print(str(curious_agent))
 
-                run_agents([curious_agent], max_time_steps)
+                success = run_agent(curious_agent, max_time_steps)
                 curious_agent.save_reconstruction_snapshot()
                 curious_agent.save_data()
+
+                with open(log_file, "a") as f:
+                    f.write(str(curious_agent) + ": " + str(success) + "\n")
 
                 # Print estimated time remaining
                 wall_time = time.time() - start_time

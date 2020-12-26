@@ -231,7 +231,7 @@ def run_experiments(map: Map):
     # Defines the different possible parameters used when creating the various brains
     brain_config = {}
     brain_config['memory_type'] = [PriorityMemory, CircularMemory]
-    brain_config['memory_length'] = [80] # TODO: [80, 100] DONE [20, 40, 60]
+    brain_config['memory_length'] = [20] # TODO: [] DONE [20, 40, 60, 80, 100]
     brain_config['novelty_loss_type'] = ['MSE', 'MAE']
     brain_config['train_epochs_per_iter'] = [1, 2, 3]
     brain_config['learning_rate'] = [0.0001, 0.0002, 0.0003, 0.0004]

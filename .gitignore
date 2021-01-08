@@ -155,3 +155,5 @@ results.csv
 *.ipynb
 
 !plotting.ipynb
+
+__init__.py

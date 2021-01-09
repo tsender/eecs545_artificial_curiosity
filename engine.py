@@ -241,7 +241,7 @@ def run_experiments(map: Map):
     for _,v in brain_config.items():
         num_curious_agents_per_pos *= len(v)
 
-    # Get range of possible (x,y) pairs. Subtract 2 since I don't quite know the whole usable range given the agent's size.
+    # Get range of possible (x,y) pairs. Subtract 2 since I don't quite know the whole usable range given the agent's FOV.
     x_range = (map.fov + 2, map.img.size[0] - fov - 2)
     y_range = (map.fov + 2, map.img.size[1] - fov - 2)
     x_vals = []
@@ -256,11 +256,6 @@ def run_experiments(map: Map):
             y_vals.append(y)
     position_list = list(zip(x_vals, y_vals))
 
-    print(F"Writing position order to file: {position_order_file}")
-    with open(position_order_file, "w") as f:
-        writer = csv.writer(f)
-        writer.writerows(position_list) # x,y format
-
     # Create results directories
     print("Creating directories...")
     result_dirs = []
@@ -271,6 +266,11 @@ def run_experiments(map: Map):
 
         if not os.path.isdir(dir):
             os.makedirs(dir, exist_ok=True)
+
+    print(F"Writing position order to file: {position_order_file}")
+    with open(position_order_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(position_list) # x,y format
 
     with open(log_file, "a") as f:
         f.write("STARTING NEW EXPERIMENT: " + base_results_dir + "\n")
@@ -370,13 +370,13 @@ def run_experiments(map: Map):
 
                             cur_agent_num += 1
 
-def run_best_experiments(map: Map):
+def run_random_experiments(map: Map):
     """Run a series of experiments among Random, Linear, and the Best Curiosity agents for various starting position."""
 
     # Some high-level parameters
     num_starting_positions = 10
     random.seed(12345)
-    base_results_dir = "results_best"
+    base_results_dir = "results_random"
     max_time_steps = 1000
     fov = 64
     grain_size = (fov, fov, 1)
@@ -386,10 +386,30 @@ def run_best_experiments(map: Map):
 
     # Defines the best brain config
     best_brains = [] # In the whole universe
-    best_brains.append({'memory': CircularMemory(64), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
-                        'train_epochs_per_iter': 3, 'learning_rate': 0.0002})
+
+    # Top 3 agents with max mean APV (mean over all 10 starting positions)
     best_brains.append({'memory': CircularMemory(100), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
-                        'train_epochs_per_iter': 3, 'learning_rate': 0.0005})
+                        'train_epochs_per_iter': 3, 'learning_rate': 0.0003})
+    best_brains.append({'memory': CircularMemory(80), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 3, 'learning_rate': 0.0001})
+    best_brains.append({'memory': CircularMemory(100), 'img_size': grain_size, 'novelty_loss_type': "MAE", 
+                        'train_epochs_per_iter': 2, 'learning_rate': 0.0004})
+    
+    # Top 3 agents with max variation of APV (variation over all 10 starting positions)
+    best_brains.append({'memory': CircularMemory(40), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 3, 'learning_rate': 0.0004})
+    best_brains.append({'memory': CircularMemory(60), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 1, 'learning_rate': 0.0002})
+    best_brains.append({'memory': CircularMemory(40), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 1, 'learning_rate': 0.0001})
+
+    # Top 3 agents with single max APV at some starting position (no averaging done)
+    best_brains.append({'memory': CircularMemory(60), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 2, 'learning_rate': 0.0004})
+    best_brains.append({'memory': CircularMemory(60), 'img_size': grain_size, 'novelty_loss_type': "MSE", 
+                        'train_epochs_per_iter': 1, 'learning_rate': 0.0002})
+    best_brains.append({'memory': CircularMemory(80), 'img_size': grain_size, 'novelty_loss_type': "MAE", 
+                        'train_epochs_per_iter': 1, 'learning_rate': 0.0002})
     prob_list = [(1.0, 0.0), (0.95, 0.05), (0.9, 0.1), (0.85, 0.15), (0.8, 0.2)] # Probabilty of choosing 1st and 2nd best movements
 
     for p in prob_list:
@@ -397,7 +417,7 @@ def run_best_experiments(map: Map):
 
     num_curious_agents_per_pos = len(prob_list) * len(best_brains)
 
-    # Get range of possible (x,y) pairs. Subtract 2 since I don't quite know the whole usable range given the agent's size.
+    # Get range of possible (x,y) pairs. Subtract 2 since I don't quite know the whole usable range given the agent's FOV.
     x_range = (map.fov + 2, map.img.size[0] - fov - 2)
     y_range = (map.fov + 2, map.img.size[1] - fov - 2)
     x_vals = []
@@ -412,11 +432,6 @@ def run_best_experiments(map: Map):
             y_vals.append(y)
     position_list = list(zip(x_vals, y_vals))
 
-    print(F"Writing position order to file: {position_order_file}")
-    with open(position_order_file, "w") as f:
-        writer = csv.writer(f)
-        writer.writerows(position_list) # x,y format
-
     # Create results directories
     print("Creating directories...")
     result_dirs = []
@@ -427,6 +442,14 @@ def run_best_experiments(map: Map):
 
         if not os.path.isdir(dir):
             os.makedirs(dir, exist_ok=True)
+
+    print(F"Writing position order to file: {position_order_file}")
+    with open(position_order_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(position_list) # x,y format
+
+    with open(log_file, "a") as f:
+        f.write("STARTING NEW EXPERIMENT: " + base_results_dir + "\n")
 
     # Create Linear/Random agents for convenience so their data is next to the best agents' data
     print("Creating Linear/Random agents...")
@@ -487,7 +510,7 @@ def run_best_experiments(map: Map):
                                 
                 brain = Brain(**brain_cfg)
                 curious_motiv = Curiosity(map, brain, rate=move_rate, prob=prob)
-                curious_agent = Agent(curious_motiv, pos)
+                curious_agent = Agent(curious_motiv, pos, steps_bw_snapshot=1) # Take snapshot every frame
                 data_dir = os.path.join(result_dirs[i], str(curious_agent))
                 curious_agent.set_data_dir(data_dir)
                 print(str(curious_agent))
@@ -584,5 +607,5 @@ if __name__ == "__main__":
 
     fov = 64 # Allowed FOVs = {32, 64, 128}
     map = Map('data/mars.png', fov, 2)
-    run_experiments(map)
-    # run_best_experiments(map)
+    # run_experiments(map)
+    run_random_experiments(map)

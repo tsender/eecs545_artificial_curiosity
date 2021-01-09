@@ -1,0 +1,22 @@
+STARTING NEW EXPERIMENT: results_random
+Linear_Agent_Pos_1772_86: True
+Linear_Agent_Pos_1289_820: True
+Linear_Agent_Pos_859_619: True
+Linear_Agent_Pos_2384_959: True
+Linear_Agent_Pos_728_830: True
+Linear_Agent_Pos_574_952: True
+Linear_Agent_Pos_1135_1217: True
+Linear_Agent_Pos_2635_423: True
+Linear_Agent_Pos_2571_1198: True
+Linear_Agent_Pos_831_792: True
+Random_Agent_Pos_1772_86: True
+Random_Agent_Pos_1289_820: True
+Random_Agent_Pos_859_619: True
+Random_Agent_Pos_2384_959: True
+Random_Agent_Pos_728_830: True
+Random_Agent_Pos_574_952: True
+Random_Agent_Pos_1135_1217: True
+Random_Agent_Pos_2635_423: True
+Random_Agent_Pos_2571_1198: True
+Random_Agent_Pos_831_792: True
+Curiosity_Prob1.0_Brain_CircMem_Mem100_ImgSize64_NovMSE_Train3_Lrate0.0003_Agent_Pos_1772_86: True
